@@ -5,30 +5,16 @@ import statistics as stat
 from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
-# Put filename of rubric to use. Rubric file should be in the "rubrics" folder.
-rubric_filename = 'workbook1.json'
-# Put filenames of CSVs, and corresponding shorthand names. CSVs should be in "data" folder.
-questions = {
-    'Nissembaum': '1_Nissenbaum_How_Computer_Systems_Embody_.csv',
-    'Papanek': '2_Papanek_Do-it-Yourself_Murder.csv',
-    'Flanagan': '3_Flanagan_et_al_Embodying_Values_in_Tech.csv',
-    'Gaver': '4_Gaver_Making_spaces_How_design_workbook.csv',
-    'Gaver and Martin': '5_Gaver_and_Martin_Alternatives_exploring.csv',
-    'Gaver and Dunne': '6_Gaver_and_Dunne_Projected_realities.csv',
-    'Gaver and Bowers': '7_Gaver_and_Bowers_Annotated_Portfolios.csv',
-    'Bleeker': '8_Bleecker_Part_1_Design_Fiction_pp_3-8_o.csv',
-    'Pierce': '9_Pierce_and_Paulos_Some_variations_on_a_.csv',
-    'Edgerton': '10_Edgerton_Significance.csv',
-    'Scott': '11_Scott_High-Modernist_City.csv',
-    'Refrigerator': '12_How_the_Refrigerator_gets_its_Hum.csv',
-    'Infrastructure': '13_Infrastructural_Speculations.csv'
-}
+# Put filepath of rubric to use for this assignment. Rubric is JSON file.
+rubric_path = 'rubrics/workbook1.json'
+# Put directory where you're storing all CSVs for this specific assignment.
+csv_dir = "data"
 # ===========================
 
 # Read in all the grades for a single GS eval sheet
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
 def read_grades(rubric, question_name, csv):
-    df = pd.read_csv(os.path.join("data", csv))
+    df = pd.read_csv(csv)
     df.drop(index=[len(df)-1, len(df)-2, len(df)-3, len(df)-4], inplace=True)
 
     grades = df.apply(lambda row: calc_grade(row, rubric, question_name, df.columns), axis=1)
@@ -148,13 +134,19 @@ def calc_grade(row, rubric, question_name, col_names):
 if __name__ == "__main__":
 
     # Load rubric
-    with open(os.path.join("rubrics", rubric_filename)) as f:
+    with open(rubric_path) as f:
         rubric = json.load(f)
 
     # Verify there's an assignment ID so we can generate URLs
     if 'gsAssignmentID' not in rubric:
         print("Error: Gradescope assignment ID (check in URL text) is not present for this rubric. Please include it.")
         exit(0)
+
+    questions = dict()
+    for entry in os.scandir(csv_dir):
+        if (entry.path.endswith(".csv")):
+            simplified_key = os.path.splitext(os.path.basename(entry.path))[0][:20]
+            questions[simplified_key] = entry.path
 
     grades = []
     for name, csv in questions.items():

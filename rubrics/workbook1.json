@@ -1,0 +1,55 @@
+{
+    "gsAssignmentID": "987230",
+    "rubric" : {
+        "This reading was not selected": 0,
+        "Something was submitted": {
+            "Something was submitted, but not assigned correctly": 1,
+            "Something was submitted": 2
+        },
+        "Idea from the reading": {
+            "No idea from the reading is expressed": 0,
+            "Idea or reading are from the wrong unit": 0,
+            "An idea from the reading is expressed, but the reading is not specified": 2,
+            "There are multiple ideas being responded to without a clear focus": 2,
+            "Expresses idea from the reading, with misunderstanding": 3,
+            "Expresses a reasonable interpretation of the idea from the reading": 4,
+            "Clearly represents a correct, accurate interpretation of the reading in the student's own words": 5
+        },
+        "Design sketch (in words and/or pictures)": {
+            "There is no design included": 0,
+            "There is a design-like idea included ": 1,
+            "A design of some sort is included": 2,
+            "An original design is included, but may not be clear": 3.5,
+            "An original, clear design is included": 5.5,
+            "A design is included which is clear and truly imaginative, above and beyond what we would normally expect": 6
+        },
+        "Reflections on the reading through the design ": {
+            "It is hard to find a connection between the design and the reading ": 0,
+            "It is possible to discern a connection between the design and the reading": 1,
+            "A clear connection between the design and the reading is expressed, but it is based on a misinterpretation": 2,
+            " A clear connection between reading and design is expressed based on a reasonable interpretation of the reading": 3,
+            "Connections between reading and design are based on an accurate interpretation of a core argument in the reading": 4.5,
+            "The reflections made me say \"Wow\", thought-provoking and original, goes above and beyond": 5
+        },
+        "Quality of reflections (select all)": {
+            "The discussion of the ideas the design raises is nuanced": 1,
+            "The reflections build on insights into the world that the design would create": 1
+        }
+    },
+    "aggr_method" :
+    {   "This reading was not selected": "max",
+        "Something was submitted": "max",
+        "Idea from the reading": "max",
+        "Design sketch (in words and/or pictures)": "max",
+        "Reflections on the reading through the design ": "max",
+        "Quality of reflections (select all)": "sum"
+    },
+    "shortnames" :
+    {   "This reading was not selected": "Selected",
+        "Something was submitted": "Submitted",
+        "Idea from the reading": "Idea",
+        "Design sketch (in words and/or pictures)": "Design",
+        "Reflections on the reading through the design ": "Reflections",
+        "Quality of reflections (select all)": "Reflection Quality"
+    }
+}

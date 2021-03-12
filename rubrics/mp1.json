@@ -1,0 +1,110 @@
+{
+    "gsAssignmentID": "986266",
+    "rubric" : {
+        "Something was submitted": 10,
+        "Sketch 1": {
+            "No design was included": 0,
+            "The design is very similar to another included sketch": 0.5,
+            "The design is not persuasive": 1,
+            "The design is persuasive, but does not use a persuasive affordance": 1,
+           "The design uses an affordance, but which persuasive affordance used is unclear": 2,
+           "The design uses a persuasive affordance, but there is inaccuracy in how the persuasive affordance is deployed": 2,
+           "The design correctly uses the identified persuasive affordance": 3
+        },
+        "Sketch 2": {
+            "No design was included": 0,
+            "The design is very similar to another included sketch": 0.5,
+            "The design is not persuasive": 1,
+            "The design is persuasive, but does not use a persuasive affordance": 1,
+           "The design uses an affordance, but which persuasive affordance used is unclear": 2,
+           "The design uses a persuasive affordance, but there is inaccuracy in how the persuasive affordance is deployed": 2,
+           "The design correctly uses the identified persuasive affordance": 3
+        },
+        "Sketch 3": {
+            "No design was included": 0,
+            "The design is very similar to another included sketch": 0.5,
+            "The design is not persuasive": 1,
+            "The design is persuasive, but does not use a persuasive affordance": 1,
+           "The design uses an affordance, but which persuasive affordance used is unclear": 2,
+           "The design uses a persuasive affordance, but there is inaccuracy in how the persuasive affordance is deployed": 2,
+           "The design correctly uses the identified persuasive affordance": 3
+        },
+        "Behavior relation to issue": {
+           "No behavior description was submitted": 0,
+           "The behavior does not seem related to the social issue the assignment is about": 0,
+           "The behavior is tangential to the social issue the assignment is about": 1,
+           "The behavior is clearly related to the selected social issue": 2
+        },
+        "Behavior is specific, measurable, and observable": {
+           "No behavior description was submitted": 0,
+           "The description is of an attitude rather than a behavior": 1,
+           "The behavior is not specific, not measurable, and not objectively observable": 1,
+           "The behavior is not very specific, but in principle it could be observed/measured": 2,
+           "The behavior is specific, but it would be difficult to observe/measure it": 2,
+           "The behavior is somewhat specific, measurable, and observable": 3,
+           "The behavior is very precise: specific, measurable, and observable": 4
+        },
+        "Connection between mechanism and behavior": {
+           "The mechanism seems unrelated to encouraging the described behavior": 1,
+           "The mechanism might be related to encouraging the described behavior": 3,
+           "The mechanism is loosely related to encouraging the described behavior": 4,
+           "The mechanism is related to encouraging the behavior, but is not a technology": 4,
+           "The mechanism is clearly connected to the specified behavior, but may not be completely related.": 6,
+           "The mechanism is clearly related to encouraging the specified behavior": 7,
+           "The mechanism is likely to encourage the specified behavior": 8
+        },
+        "Compellingness": {
+           "The mechanism would actively turn off the target audience": 0,
+           "While the mechanism overall would not turn off the target audience, one or more aspects of the mechanism would turn them off": 2,
+           "The mechanism does not turn off the audience, but lacks positive features to attract the target audience": 3,
+           "The mechanism would be compelling to the target audience": 4
+        },
+        "Robustness": {
+           "The device is too complicated to use or requires too much overhead to be realistic in a real user's life": 0,
+           "The device is usable, but requires users to significantly adapt their lives in order for it to work": 1,
+           "The design requires some extra time and attention, but the load is reasonable in a regular users' life": 3,
+           "The design will work effectively in a real person’s life without special attention": 4
+        },
+        "Persuasion vs coercion": {
+           "The design is coercive": 0,
+           "The design is coercive, but this could easily be fixed without changing the core mechanism": 1,
+           "The design is persuasive, but there are aspects that are coercive": 2,
+           "The design is persuasive, and not coercive": 4
+        },
+        "Quality of design": {
+           "The design is identical to one of the original sketches": 0,
+           "The design is not original; extremely similar to a known real-world design (e.g., FitBit)": 1,
+           "The design is very similar to one of the original sketches": 1.5,
+           "The design is somewhat fleshed out from the original sketches, but does not significantly advance from them": 3,
+           "Solid design along expectable/predictable lines": 4,
+           "Design is truly creative and unexpected": 5
+        }
+    },
+    "aggr_method" :
+    {
+        "Something was submitted": "sum",
+        "Sketch 1": "max",
+        "Sketch 2": "max",
+        "Sketch 3": "max",
+        "Behavior relation to issue": "max",
+        "Behavior is specific, measurable, and observable": "max",
+        "Connection between mechanism and behavior": "max",
+        "Compellingness": "max",
+        "Robustness": "max",
+        "Persuasion vs coercion": "max",
+        "Quality of design": "max"
+    },
+    "shortnames" :
+    {   "Something was submitted": "Submitted",
+        "Sketch 1": "Sketch 1",
+        "Sketch 2": "Sketch 2",
+        "Sketch 3": "Sketch 3",
+        "Behavior relation to issue": "Behavior relation",
+        "Behavior is specific, measurable, and observable": "Behavior is SMO",
+        "Connection between mechanism and behavior": "Connections",
+        "Compellingness": "Compellingness",
+        "Robustness": "Robustness",
+        "Persuasion vs coercion": "Pers. vs Coerc.",
+        "Quality of design": "Design Quality"
+    }
+}
