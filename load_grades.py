@@ -11,9 +11,20 @@ rubric_path = 'rubrics/workbook1.json'
 csv_dir = "data"
 # ===========================
 
+# Read in all the grades for all the csvs specified in questions,
+# using the given rubric (a JSON object).
+# :: Returns grades as a list of dicts. See end of calc_grade for format.
+def load_all_grades(rubric, questions):
+    grades = []
+    for name, csv in questions.items():
+        print("Question:", name, csv)
+        gs = load_grades(rubric, name, csv)
+        grades.extend(gs)
+    return grades
+
 # Read in all the grades for a single GS eval sheet
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
-def read_grades(rubric, question_name, csv):
+def load_grades(rubric, question_name, csv):
     df = pd.read_csv(csv)
     df.drop(index=[len(df)-1, len(df)-2, len(df)-3, len(df)-4], inplace=True)
 
@@ -148,11 +159,8 @@ if __name__ == "__main__":
             simplified_key = os.path.splitext(os.path.basename(entry.path))[0][:20]
             questions[simplified_key] = entry.path
 
-    grades = []
-    for name, csv in questions.items():
-        print("Question:", name, csv)
-        gs = read_grades(rubric, name, csv)
-        grades.extend(gs)
+    # Calculate grades
+    grades = load_all_grades(rubric, questions)
 
     student_submissions = dict()
     for g in grades:
