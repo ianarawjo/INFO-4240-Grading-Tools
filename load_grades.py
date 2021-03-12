@@ -24,13 +24,13 @@ def read_grades(rubric, question_name, csv):
 
 # Calculate the grade for a specific row of a GS eval sheet
 def calc_grade(row, rubric, question_name, col_names):
+    if pd.isna(row['Score']) or row['Score'] == 0: return None
     scores = dict()
     errors = []
     gsAssignmentID = rubric['gsAssignmentID']
     aggr_method = rubric['aggr_method']
     shortnames = rubric['shortnames']
     rubric = rubric['rubric']
-    if pd.isna(row['Score']) or row['Score'] == 0: return None
 
     # Detects which column name matches a given rubric item.
     # Has to be done on a case-by-case basis because of small variations in strings.
@@ -183,11 +183,24 @@ if __name__ == "__main__":
             for e in g['errors']:
                 aggr_errs.append( [e, g['grader'], g['question'], g['url'] ] )
     aggr_errs.sort(key=lambda r: (r[0], r[1], r[2]))
-    for e in aggr_errs:
-        print(e)
-
     df_errs = pd.DataFrame(aggr_errs, columns=["Issue", "Grader", "Question", "URL"])
     df_errs.to_csv("grading_errors.csv", index=False)
+
+    # Collect student 'missed questions' into a spreadsheet
+    num_questions = len(questions)
+    if num_questions > 1:
+        if 'expectedQuestionsAnswered' not in rubric:
+            print("Error: Cannot export which students are missing questions. Set expectedQuestionsAnswered in rubric.")
+        else:
+            # Loop through students
+            students_missing_qs = []
+            for sid, gs in student_submissions.items():
+                if len(gs) != rubric['expectedQuestionsAnswered']:
+                    students_missing_qs.append( [sid, gs[0]['name'], gs[0]['email'], rubric['expectedQuestionsAnswered']-len(gs)] )
+            df_miss = pd.DataFrame(students_missing_qs, columns=["SID", "Name", "Email", "Number Missing"])
+            df_miss.to_csv("missing_questions.csv", index=False)
+
+
 
     # Calculate grading distributions per rubric item
     # item_scores = [[] for i in range(len(rubric['shortnames']))]
