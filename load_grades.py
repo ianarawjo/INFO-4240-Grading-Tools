@@ -114,7 +114,7 @@ def calc_grade(row, rubric, question_name, col_names):
     # Return the grade details
     return {
         "name" : row["First Name"] + " " + row["Last Name"],
-        "sid" : row["SID"],
+        "sid" : int(row["SID"]),
         "aid" : row["Assignment Submission ID"],
         "qid" : row["Question Submission ID"],
         "email" : row["Email"],
@@ -161,6 +161,21 @@ if __name__ == "__main__":
         else:
             student_submissions[g['sid']] = [ g ]
 
+    # Export all grades, sorted by student and question:
+    export_cols = ["Name", "Email", "Question", "Grader", "Comments", "Adjustment", "Total Score"]
+    item_names = rubric['shortnames'].keys()
+    export_cols.extend(item_names)
+    export_cols.extend(["URL", "SID", "Assignment Submission ID", "Question Submission ID"])
+    export_grades = []
+    for g in grades:
+        row = [ g['name'], g['email'], g['question'], g['grader'], g['comments'], g['adjustment'], g['total_score'] ]
+        row.extend([score for _, score in g['grade'].items()])
+        row.extend([g['url'], g['sid'], g['aid'], g['qid']])
+        export_grades.append(row)
+    export_grades.sort(key=lambda r: (r[0], r[2]))
+    df_grades = pd.DataFrame(export_grades, columns=export_cols)
+    df_grades.to_csv("all_grades.csv", index=False)
+
     # Collect grading errors into a spreadsheet
     aggr_errs = []
     for sid, gs in student_submissions.items():
@@ -171,8 +186,8 @@ if __name__ == "__main__":
     for e in aggr_errs:
         print(e)
 
-    df_errs = pd.DataFrame(aggr_errs, columns=["Error", "Grader", "Question", "URL"])
-    df_errs.to_csv("grading_errors.csv")
+    df_errs = pd.DataFrame(aggr_errs, columns=["Issue", "Grader", "Question", "URL"])
+    df_errs.to_csv("grading_errors.csv", index=False)
 
     # Calculate grading distributions per rubric item
     # item_scores = [[] for i in range(len(rubric['shortnames']))]
