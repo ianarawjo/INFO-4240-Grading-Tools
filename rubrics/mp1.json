@@ -4,7 +4,6 @@
         "Something was submitted": 10,
         "Sketch 1": {
             "No design was included": 0,
-            "The design is very similar to another included sketch": 0.5,
             "The design is not persuasive": 1,
             "The design is persuasive, but does not use a persuasive affordance": 1,
            "The design uses an affordance, but which persuasive affordance used is unclear": 2,

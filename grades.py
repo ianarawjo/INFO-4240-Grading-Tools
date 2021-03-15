@@ -8,23 +8,45 @@ from difflib import get_close_matches
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
 rubric_path = 'rubrics/workbook1.json'
 # Put directory where you're storing all CSVs for this specific assignment.
+# :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 csv_dir = "data"
 # ===========================
+
+def load_rubric(rubric_path):
+    with open(rubric_path) as f:
+        rubric = json.load(f)
+    return rubric
 
 # Read in all the grades for all the csvs specified in questions,
 # using the given rubric (a JSON object).
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
-def load_all_grades(rubric, questions):
+def load_grades(rubric_path, csv_dir):
+
+    # Load rubric
+    rubric = load_rubric(rubric_path)
+
+    # Verify there's an assignment ID so we can generate URLs
+    if 'gsAssignmentID' not in rubric:
+        print("Error: Gradescope assignment ID (check in URL text) is not present for this rubric. Please include it.")
+        exit(0)
+
+    # Load csv files as 'questions'
+    questions = dict()
+    for entry in os.scandir(csv_dir):
+        if (entry.path.endswith(".csv")):
+            simplified_key = os.path.splitext(os.path.basename(entry.path))[0][:20]
+            questions[simplified_key] = entry.path
+
     grades = []
     for name, csv in questions.items():
         print("Question:", name, csv)
-        gs = load_grades(rubric, name, csv)
+        gs = load_gradesheet(rubric, name, csv)
         grades.extend(gs)
-    return grades
+    return grades, rubric, questions
 
 # Read in all the grades for a single GS eval sheet
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
-def load_grades(rubric, question_name, csv):
+def load_gradesheet(rubric, question_name, csv):
     df = pd.read_csv(csv)
     df.drop(index=[len(df)-1, len(df)-2, len(df)-3, len(df)-4], inplace=True)
 
@@ -144,23 +166,8 @@ def calc_grade(row, rubric, question_name, col_names):
 # Command-line loading.
 if __name__ == "__main__":
 
-    # Load rubric
-    with open(rubric_path) as f:
-        rubric = json.load(f)
-
-    # Verify there's an assignment ID so we can generate URLs
-    if 'gsAssignmentID' not in rubric:
-        print("Error: Gradescope assignment ID (check in URL text) is not present for this rubric. Please include it.")
-        exit(0)
-
-    questions = dict()
-    for entry in os.scandir(csv_dir):
-        if (entry.path.endswith(".csv")):
-            simplified_key = os.path.splitext(os.path.basename(entry.path))[0][:20]
-            questions[simplified_key] = entry.path
-
     # Calculate grades
-    grades = load_all_grades(rubric, questions)
+    grades, rubric, questions = load_grades(rubric_path, csv_dir)
 
     student_submissions = dict()
     for g in grades:
@@ -207,8 +214,6 @@ if __name__ == "__main__":
                     students_missing_qs.append( [sid, gs[0]['name'], gs[0]['email'], rubric['expectedQuestionsAnswered']-len(gs)] )
             df_miss = pd.DataFrame(students_missing_qs, columns=["SID", "Name", "Email", "Number Missing"])
             df_miss.to_csv("missing_questions.csv", index=False)
-
-
 
     # Calculate grading distributions per rubric item
     # item_scores = [[] for i in range(len(rubric['shortnames']))]
