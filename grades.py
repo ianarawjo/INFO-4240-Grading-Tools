@@ -12,15 +12,39 @@ rubric_path = 'rubrics/mp1.json'
 csv_dir = "data"
 # ===========================
 
+# Loads rubric JSON file
 def load_rubric(rubric_path):
     with open(rubric_path) as f:
         rubric = json.load(f)
     return rubric
 
+# Converts a list of dictionaries, where each dict
+# has the exact same keys, into a pandas DataFrame where
+# columns=keys and rows=values, with one exception:
+# It expands the 'grade' item (which is a dict)
+# into separate columns.
+def to_pandas(grades):
+    if len(grades) == 0: return None
+    entries = []
+    cols = list(grades[0].keys())
+    for d in grades:
+        entry = []
+        for c in cols:
+            if c != 'grade':
+                entry.append(d[c])
+            else:
+                entry.extend([score for _, score in d[c].items()])
+        entries.append(entry)
+    rubric_items = list(grades[0]['grade'].keys())
+    grade_col_idx = cols.index('grade')
+    cols = cols[0:grade_col_idx] + rubric_items + cols[grade_col_idx+1:]
+    return pd.DataFrame(entries, columns=cols)
+
 # Read in all the grades for all the csvs specified in questions,
 # using the given rubric (a JSON object).
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
-def load_grades(rubric_path, csv_dir):
+# :: Alternatively, you can set to_pandas_df to get an equivalent DataFrame format.
+def load_grades(rubric_path, csv_dir, to_pandas_df=False):
 
     # Load rubric
     rubric = load_rubric(rubric_path)
@@ -39,10 +63,14 @@ def load_grades(rubric_path, csv_dir):
 
     grades = []
     for name, csv in questions.items():
-        print("Question:", name, csv)
+        print("Loaded question:", name, csv)
         gs = load_gradesheet(rubric, name, csv)
         grades.extend(gs)
-    return grades, rubric, questions
+
+    if to_pandas_df:
+        return to_pandas(grades), rubric, questions
+    else:
+        return grades, rubric, questions
 
 # Read in all the grades for a single GS eval sheet
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
