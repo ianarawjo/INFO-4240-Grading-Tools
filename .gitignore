@@ -1,6 +1,7 @@
 *.DS_Store
 grading_errors.csv
 all_grades.csv
+missing_questions.csv
 data/*
 __pycache__/*
 .ipynb_checkpoints/*
