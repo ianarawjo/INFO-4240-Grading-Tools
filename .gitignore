@@ -3,3 +3,4 @@ grading_errors.csv
 all_grades.csv
 data/*
 __pycache__/*
+.ipynb_checkpoints/*
