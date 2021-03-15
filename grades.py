@@ -229,9 +229,9 @@ if __name__ == "__main__":
     for sid, gs in student_submissions.items():
         for g in gs:
             for e in g['errors']:
-                aggr_errs.append( [e, g['grader'], g['question'], g['url'] ] )
+                aggr_errs.append( [e, g['grader'], g['comments'], g['question'], g['url'] ] )
     aggr_errs.sort(key=lambda r: (r[0], r[1], r[2]))
-    df_errs = pd.DataFrame(aggr_errs, columns=["Issue", "Grader", "Question", "URL"])
+    df_errs = pd.DataFrame(aggr_errs, columns=["Issue", "Grader", "Comments", "Question", "URL"])
     df_errs.to_csv("grading_errors.csv", index=False)
 
     # Collect student 'missed questions' into a spreadsheet
