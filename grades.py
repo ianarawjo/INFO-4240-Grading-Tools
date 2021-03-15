@@ -171,9 +171,9 @@ def calc_grade(row, rubric, question_name, col_names):
     # Check whether comments are blank
     if not isinstance(row['Comments'], str) or len(row['Comments'].strip()) == 0:
         if incomplete_score:
-            errors.append("Comment is blank after all rubric items were completed.")
-        else:
             errors.append("Comment is blank, and not all rubric items are completed.")
+        else:
+            errors.append("Comment is blank after all rubric items were completed.")
     elif any(s in row['Comments'] for s in ('you', 'You')):
         errors.append("Comment contains the word 'you.'")
 
