@@ -9,7 +9,7 @@ from difflib import get_close_matches
 rubric_path = 'rubrics/mp1.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
-csv_dir = "data"
+csv_dir = "data/mp1"
 # ===========================
 
 # Loads rubric JSON file
@@ -87,6 +87,7 @@ def load_gradesheet(rubric, question_name, csv):
 def calc_grade(row, rubric, question_name, col_names):
     if pd.isna(row['Score']) or row['Score'] == 0: return None
     scores = dict()
+    incomplete_score = False
     errors = []
     gsAssignmentID = rubric['gsAssignmentID']
     aggr_method = rubric['aggr_method']
@@ -144,6 +145,7 @@ def calc_grade(row, rubric, question_name, col_names):
         # Aggregate scores using appropriate method for this rubric item=
         if aggr_method[key] == "max":
             if len(subscores) == 0:
+                incomplete_score = True
                 errors.append("No score entered for rubric item: " + str(key))
                 score = 0
             else:
@@ -168,7 +170,10 @@ def calc_grade(row, rubric, question_name, col_names):
     # Check for errors in grading
     # Check whether comments are blank
     if not isinstance(row['Comments'], str) or len(row['Comments'].strip()) == 0:
-        errors.append("Comment is blank.")
+        if incomplete_score:
+            errors.append("Comment is blank after all rubric items were completed.")
+        else:
+            errors.append("Comment is blank, and not all rubric items are completed.")
     elif any(s in row['Comments'] for s in ('you', 'You')):
         errors.append("Comment contains the word 'you.'")
 
