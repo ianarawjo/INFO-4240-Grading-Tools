@@ -6,7 +6,7 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/workbook1.json'
+rubric_path = 'rubrics/mp1.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 csv_dir = "data"
@@ -48,7 +48,7 @@ def load_grades(rubric_path, csv_dir):
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
 def load_gradesheet(rubric, question_name, csv):
     df = pd.read_csv(csv)
-    df.drop(index=[len(df)-1, len(df)-2, len(df)-3, len(df)-4], inplace=True)
+    df.drop(index=[len(df)-1, len(df)-2, len(df)-3], inplace=True)
 
     grades = df.apply(lambda row: calc_grade(row, rubric, question_name, df.columns), axis=1)
     grades = [g for g in grades if g is not None] # cull the Nones
@@ -147,7 +147,7 @@ def calc_grade(row, rubric, question_name, col_names):
     # Return the grade details
     return {
         "name" : row["First Name"] + " " + row["Last Name"],
-        "sid" : int(row["SID"]),
+        "sid" : int(row["SID"]) if not pd.isna(row["SID"]) else -1,
         "aid" : row["Assignment Submission ID"],
         "qid" : row["Question Submission ID"],
         "email" : row["Email"],
