@@ -1,32 +1,42 @@
 {
     "gsAssignmentID": "986266",
+    "maxScore": 50,
     "rubric" : {
         "Something was submitted": 10,
         "Sketch 1": {
             "No design was included": 0,
-            "The design is not persuasive": 1,
+            "The design is not persuasive": 0.5,
             "The design is persuasive, but does not use a persuasive affordance": 1,
-           "The design uses an affordance, but which persuasive affordance used is unclear": 2,
+           "The design uses an affordance, but which persuasive affordance used is unclear": 1.5,
            "The design uses a persuasive affordance, but there is inaccuracy in how the persuasive affordance is deployed": 2,
            "The design correctly uses the identified persuasive affordance": 3
         },
         "Sketch 2": {
             "No design was included": 0,
             "The design is very similar to another included sketch": 0.5,
-            "The design is not persuasive": 1,
+            "The design is not persuasive": 0.5,
             "The design is persuasive, but does not use a persuasive affordance": 1,
-           "The design uses an affordance, but which persuasive affordance used is unclear": 2,
+           "The design uses an affordance, but which persuasive affordance used is unclear": 1.5,
            "The design uses a persuasive affordance, but there is inaccuracy in how the persuasive affordance is deployed": 2,
            "The design correctly uses the identified persuasive affordance": 3
         },
         "Sketch 3": {
             "No design was included": 0,
             "The design is very similar to another included sketch": 0.5,
-            "The design is not persuasive": 1,
+            "The design is not persuasive": 0.5,
             "The design is persuasive, but does not use a persuasive affordance": 1,
-           "The design uses an affordance, but which persuasive affordance used is unclear": 2,
+           "The design uses an affordance, but which persuasive affordance used is unclear": 1.5,
            "The design uses a persuasive affordance, but there is inaccuracy in how the persuasive affordance is deployed": 2,
            "The design correctly uses the identified persuasive affordance": 3
+        },
+        "Behavior is specific, measurable, and observable": {
+           "No behavior description was submitted": 0,
+           "The description is of an attitude rather than a behavior": 0.5,
+           "The behavior is not specific, not measurable, and not objectively observable": 0.5,
+           "The behavior is not very specific, but in principle it could be observed/measured": 1.5,
+           "The behavior is specific, but it would be difficult to observe/measure it": 1.5,
+           "The behavior is somewhat specific, measurable, and observable": 2.5,
+           "The behavior is very precise: specific, measurable, and observable": 4
         },
         "Behavior relation to issue": {
            "No behavior description was submitted": 0,
@@ -34,21 +44,12 @@
            "The behavior is tangential to the social issue the assignment is about": 1,
            "The behavior is clearly related to the selected social issue": 2
         },
-        "Behavior is specific, measurable, and observable": {
-           "No behavior description was submitted": 0,
-           "The description is of an attitude rather than a behavior": 1,
-           "The behavior is not specific, not measurable, and not objectively observable": 1,
-           "The behavior is not very specific, but in principle it could be observed/measured": 2,
-           "The behavior is specific, but it would be difficult to observe/measure it": 2,
-           "The behavior is somewhat specific, measurable, and observable": 3,
-           "The behavior is very precise: specific, measurable, and observable": 4
-        },
         "Connection between mechanism and behavior": {
            "The mechanism seems unrelated to encouraging the described behavior": 1,
-           "The mechanism might be related to encouraging the described behavior": 3,
-           "The mechanism is loosely related to encouraging the described behavior": 4,
+           "The mechanism might be related to encouraging the described behavior": 2,
+           "The mechanism is loosely related to encouraging the described behavior": 3.5,
            "The mechanism is related to encouraging the behavior, but is not a technology": 4,
-           "The mechanism is clearly connected to the specified behavior, but may not be completely related.": 6,
+           "The mechanism is clearly connected to the specified behavior, but may not be completely related.": 5.5,
            "The mechanism is clearly related to encouraging the specified behavior": 7,
            "The mechanism is likely to encourage the specified behavior": 8
         },
@@ -74,8 +75,8 @@
            "The design is identical to one of the original sketches": 0,
            "The design is not original; extremely similar to a known real-world design (e.g., FitBit)": 1,
            "The design is very similar to one of the original sketches": 1.5,
-           "The design is somewhat fleshed out from the original sketches, but does not significantly advance from them": 3,
-           "Solid design along expectable/predictable lines": 4,
+           "The design is somewhat fleshed out from the original sketches, but does not significantly advance from them": 2,
+           "Solid design along expectable/predictable lines": 3.5,
            "Design is truly creative and unexpected": 5
         }
     },

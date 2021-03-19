@@ -1,5 +1,6 @@
 {
     "gsAssignmentID": "987230",
+    "maxScore": 100,
     "expectedQuestionsAnswered": 5,
     "rubric" : {
         "This reading was not selected": 0,
