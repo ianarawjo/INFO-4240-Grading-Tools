@@ -1,15 +1,19 @@
 import pandas as pd
 import os
 import json
+import datetime
 import statistics as stat
 from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/workbook2.json'
+rubric_path = 'rubrics/workbook1.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
-csv_dir = "data/dw2"
+csv_dir = "data/dw1"
+# Whether to keep persistent timestamps on when a particular error was first seen
+# (Note: if the error is no longer present, it just won't appear.)
+ERROR_CHECK_PERSISTENCE = True
 # ===========================
 
 # Loads rubric JSON file
@@ -229,10 +233,23 @@ if __name__ == "__main__":
     for sid, gs in student_submissions.items():
         for g in gs:
             for e in g['errors']:
-                aggr_errs.append( [e, g['grader'], g['comments'], g['question'], g['url'] ] )
-    aggr_errs.sort(key=lambda r: (r[0], r[1], r[3]))
-    df_errs = pd.DataFrame(aggr_errs, columns=["Issue", "Grader", "Comments", "Question", "URL"])
-    df_errs.to_csv("grading_errors.csv", index=False)
+                aggr_errs.append( [str(datetime.datetime.now()), e, g['grader'], g['comments'], g['question'], g['url'] ] )
+    aggr_errs.sort(key=lambda r: (r[0], r[1], r[2], r[4])) # sort on time first, then error type, then grader, then question #
+    df_errs = pd.DataFrame(aggr_errs, columns=["First seen", "Issue", "Grader", "Comments", "Question", "URL"])
+
+    if ERROR_CHECK_PERSISTENCE and os.path.exists("grading_errors.csv"):
+        # Load the prior error list, if it exists
+        df_prev = pd.read_csv("grading_errors.csv")
+        # Find which rows are *shared* between the prior error check and the current one (excluding timestamp column)
+        df_shared_rows = df_prev.merge(df_errs.drop(columns=['First seen'], inplace=False), how='inner', indicator=False)
+        # Find rows in the current errors which are new (not in prev list)
+        df_new_errs = df_errs.merge(df_prev.drop(columns=['First seen'], inplace=False), \
+                            how ='outer', indicator=True).loc[lambda x:x['_merge']=='left_only']
+        # Merge the new with the old, which keeps the timestamps:
+        df_merged_errs = pd.concat([df_new_errs, df_shared_rows], ignore_index=True, sort=False)
+        df_merged_errs.drop(columns=['_merge'], inplace=False).to_csv("grading_errors.csv", index=False)
+    else:
+        df_errs.to_csv("grading_errors.csv", index=False)
 
     # Collect student 'missed questions' into a spreadsheet
     num_questions = len(questions)
