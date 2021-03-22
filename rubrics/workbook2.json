@@ -22,7 +22,8 @@
             "There is a design-like idea included": 1,
             "A design of some sort is included": 2,
             "An original design is included, but may not be clear": 3.5,
-            "An original, clear design is included": 5,
+            "An original design is included along the lines of known designs": 3.5,
+            "A clear, creative original design is included": 5.5,
             "A design is included which is clear and truly imaginative, above and beyond what we would normally expect": 6
         },
         "Reflections on the reading through the design ": {
@@ -30,7 +31,7 @@
             "It is possible to discern a connection between the design and the reading": 1,
             "A clear connection between the design and the reading is expressed, but it is based on a misinterpretation": 2,
             "A clear connection between reading and design is expressed based on a reasonable interpretation of the reading": 3,
-            "Connections between reading and design are based on an accurate interpretation of a core argument in the reading": 4,
+            "Connections between reading and design are based on an accurate interpretation of the idea, rooted in understanding of the core argument in the reading": 4.5,
             "The reflections made me say \"Wow\", thought-provoking and original, goes above and beyond": 5
         },
         "Quality of reflections (select all)": {

@@ -6,10 +6,10 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/mp1.json'
+rubric_path = 'rubrics/workbook2.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
-csv_dir = "data/mp1"
+csv_dir = "data/dw2"
 # ===========================
 
 # Loads rubric JSON file
