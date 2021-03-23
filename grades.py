@@ -7,10 +7,13 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/workbook1.json'
+rubric_path = 'rubrics/workbook2.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
-csv_dir = "data/dw1"
+# :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
+# :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
+csv_dir = "data/dw2"
+additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
 ERROR_CHECK_PERSISTENCE = True
@@ -49,6 +52,7 @@ def to_pandas(grades):
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
 # :: Alternatively, you can set to_pandas_df to get an equivalent DataFrame format.
 def load_grades(rubric_path, csv_dir, to_pandas_df=False):
+    global additional_scores_sheet
 
     # Load rubric
     rubric = load_rubric(rubric_path)
@@ -62,8 +66,12 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False):
     questions = dict()
     for entry in os.scandir(csv_dir):
         if (entry.path.endswith(".csv")):
-            simplified_key = os.path.splitext(os.path.basename(entry.path))[0][:20]
-            questions[simplified_key] = entry.path
+            filename = os.path.splitext(os.path.basename(entry.path))[0]
+            if filename[-6:] == "scores":
+                additional_scores_sheet = entry.path
+            else:
+                simplified_key = filename[:20]
+                questions[simplified_key] = entry.path
 
     grades = []
     for name, csv in questions.items():
@@ -205,6 +213,21 @@ if __name__ == "__main__":
 
     # Calculate grades
     grades, rubric, questions = load_grades(rubric_path, csv_dir)
+
+    # If there's an additional score sheet identified, add "graded/ungraded" and "lateness" info:
+    if additional_scores_sheet is not None:
+        df = pd.read_csv(additional_scores_sheet)
+        num_graded = len(df[df['Status']=="Graded"])
+        num_ungraded = len(df[df['Status']=="Ungraded"])
+        num_ontime = len(df[df['Lateness (H:M:S)']=="00:00:00"])
+        num_graded_ontime = len(df[(df['Status']=="Graded") & (df['Lateness (H:M:S)']=="00:00:00")])
+        num_ungraded_ontime = len(df[(df['Status']=="Ungraded") & (df['Lateness (H:M:S)']=="00:00:00")])
+        num_graded_late = len(df[(df['Status']=="Graded") & (df['Lateness (H:M:S)']!="00:00:00")])
+        num_ungraded_late = len(df[(df['Status']=="Ungraded") & (df['Lateness (H:M:S)']!="00:00:00")])
+
+        print("\nTotal submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded, num_ungraded, 100*num_graded/(num_graded+num_ungraded)))
+        print(" > Ontime sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_ontime, num_ungraded_ontime, 100*num_graded_ontime/(num_graded_ontime+num_ungraded_ontime)))
+        print(" > Late sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_late, num_ungraded_late, 100*num_graded_late/(num_graded_late+num_ungraded_late)))
 
     student_submissions = dict()
     for g in grades:
