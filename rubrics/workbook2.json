@@ -2,6 +2,7 @@
     "gsAssignmentID": "1078556",
     "maxScore": 60,
     "expectedQuestionsAnswered": 3,
+    "wasNotSubmittedItem": "This reading was not selected",
     "rubric" : {
         "This reading was not selected": 0,
         "Something was submitted": {

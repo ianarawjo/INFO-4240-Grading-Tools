@@ -51,7 +51,7 @@ def to_pandas(grades):
 # using the given rubric (a JSON object).
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
 # :: Alternatively, you can set to_pandas_df to get an equivalent DataFrame format.
-def load_grades(rubric_path, csv_dir, to_pandas_df=False):
+def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
     global additional_scores_sheet
 
     # Load rubric
@@ -69,6 +69,8 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False):
             filename = os.path.splitext(os.path.basename(entry.path))[0]
             if filename[-6:] == "scores":
                 additional_scores_sheet = entry.path
+            elif filename[-13:] == "Please_ignore":
+                continue # skip the correction sheet
             else:
                 simplified_key = filename[:20]
                 questions[simplified_key] = entry.path
@@ -76,7 +78,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False):
     grades = []
     for name, csv in questions.items():
         print("Loaded question:", name, csv)
-        gs = load_gradesheet(rubric, name, csv)
+        gs = load_gradesheet(rubric, name, csv, only_submitted=only_submitted)
         grades.extend(gs)
 
     if to_pandas_df:
@@ -86,24 +88,36 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False):
 
 # Read in all the grades for a single GS eval sheet
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
-def load_gradesheet(rubric, question_name, csv):
+def load_gradesheet(rubric, question_name, csv, only_submitted=True):
     df = pd.read_csv(csv)
     df.drop(index=[len(df)-1, len(df)-2, len(df)-3], inplace=True)
+    df.dropna(subset=['SID'], inplace=True)
 
     grades = df.apply(lambda row: calc_grade(row, rubric, question_name, df.columns), axis=1)
-    grades = [g for g in grades if g is not None] # cull the Nones
+
+    if only_submitted:
+        grades = [g for g in grades if g['was_submitted'] is True] # cull the Nones
 
     return grades
 
 # Calculate the grade for a specific row of a GS eval sheet
 def calc_grade(row, rubric, question_name, col_names):
-    if pd.isna(row['Score']) or row['Score'] == 0: return None
     scores = dict()
+    no_score = pd.isna(row['Score']) or row['Score'] == 0
+    gs_score = 0 if no_score else row['Score']
     incomplete_score = False
     errors = []
     gsAssignmentID = rubric['gsAssignmentID']
     aggr_method = rubric['aggr_method']
     shortnames = rubric['shortnames']
+    was_submitted = True
+    was_submitted_check = None
+    if 'wasSubmittedItem' in rubric:
+        was_submitted_item = rubric['wasSubmittedItem']
+        was_submitted_check = "+"
+    elif 'wasNotSubmittedItem' in rubric:
+        was_submitted_item = rubric['wasNotSubmittedItem']
+        was_submitted_check = "-"
     rubric = rubric['rubric']
 
     # Detects which column name matches a given rubric item.
@@ -138,8 +152,14 @@ def calc_grade(row, rubric, question_name, col_names):
         # Is single rubric item w/ no subitems
         if isinstance(val, int):
             col = col_inc_term(key)
-            score = val if row[col] == "true" else 0
-            scores[shortnames[key]] = score
+            if was_submitted_check is not None and key == was_submitted_item:
+                # This is a special rubric item to mark if the current question had a submission.
+                was_submitted = row[col] == "true" or row[col] is True or row[col] == "TRUE"
+                if was_submitted_check == '-': was_submitted = not was_submitted
+                scores[shortnames[key]] = val if was_submitted else 0 # for consistency
+            else:
+                score = val if row[col] == "true" else 0
+                scores[shortnames[key]] = score
             continue
 
         # Is rubric item w/ subitems (dict)
@@ -176,7 +196,7 @@ def calc_grade(row, rubric, question_name, col_names):
         agg += val
     if row['Adjustment'] != "" and not pd.isna(row['Adjustment']):
         agg += row['Adjustment']
-    if agg != row['Score']:
+    if agg != gs_score:
         errors.append("Calc grade doesn't match GradeScope." + str(float(row['Adjustment'])))
 
     # Check for errors in grading
@@ -201,7 +221,8 @@ def calc_grade(row, rubric, question_name, col_names):
         "grader" : row["Grader"],
         "grade" : scores,
         "adjustment": 0 if pd.isna(row['Adjustment']) else row['Adjustment'],
-        "total_score" : row['Score'],
+        "total_score" : gs_score,
+        "was_submitted" : was_submitted,
         "errors" : errors,
         "url": "https://www.gradescope.com/courses/228839/assignments/" + \
                 gsAssignmentID + "/submissions/" + \
@@ -212,9 +233,10 @@ def calc_grade(row, rubric, question_name, col_names):
 if __name__ == "__main__":
 
     # Calculate grades
-    grades, rubric, questions = load_grades(rubric_path, csv_dir)
+    grades, rubric, questions = load_grades(rubric_path, csv_dir, only_submitted=False)
 
     # If there's an additional score sheet identified, add "graded/ungraded" and "lateness" info:
+    is_late_submitter = None
     if additional_scores_sheet is not None:
         df = pd.read_csv(additional_scores_sheet)
         num_graded = len(df[df['Status']=="Graded"])
@@ -225,9 +247,49 @@ if __name__ == "__main__":
         num_graded_late = len(df[(df['Status']=="Graded") & (df['Lateness (H:M:S)']!="00:00:00")])
         num_ungraded_late = len(df[(df['Status']=="Ungraded") & (df['Lateness (H:M:S)']!="00:00:00")])
 
+        df_scores_sheet = df
+        def is_late_submitter(sid):
+            student = df_scores_sheet[df_scores_sheet['SID']==str(sid)]
+            if len(student) == 0:
+                print("Error: Could not find student with SID", sid)
+            elif len(student) > 1:
+                print("Error: Found more than one student with SID", sid)
+            else:
+                return (student['Lateness (H:M:S)'] != "00:00:00").tolist()[0]
+
         print("\nTotal submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded, num_ungraded, 100*num_graded/(num_graded+num_ungraded)))
         print(" > Ontime sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_ontime, num_ungraded_ontime, 100*num_graded_ontime/(num_graded_ontime+num_ungraded_ontime)))
         print(" > Late sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_late, num_ungraded_late, 100*num_graded_late/(num_graded_late+num_ungraded_late)))
+
+    # If there's more than one question, count the grading progress of each:
+    num_questions = len(questions)
+    if num_questions > 1:
+        print("\nPer question completion rates (assumes you've included a 'was submitted' rubric item per question and filled this out for all submissions):")
+        completion_rates = []
+        for q, _ in questions.items():
+            submitted = [g for g in grades if g['was_submitted'] is True and g['question'] is q]
+            submitted_ungraded = [g for g in submitted if g['total_score'] == 0]
+
+            if is_late_submitter: # if we have late submission information from the Download Grades sheet...
+                submitted_ontime = [g for g in submitted if not is_late_submitter(g['sid'])]
+                submitted_ungraded_ontime = [g for g in submitted if g['total_score'] == 0 and not is_late_submitter(g['sid'])]
+                completion_rates.append( (q, len(submitted)-len(submitted_ungraded), len(submitted_ungraded), \
+                                              len(submitted_ontime)-len(submitted_ungraded_ontime), len(submitted_ungraded_ontime)))
+            else:
+                completion_rates.append( (q, len(submitted)-len(submitted_ungraded), len(submitted_ungraded)) )
+
+        if is_late_submitter:
+            for (q, num_graded, num_ungraded, num_graded_ontime, num_ungraded_ontime) in completion_rates:
+                total_submitted = num_graded + num_ungraded
+                total_ontime = num_graded_ontime + num_ungraded_ontime
+                print(" > {}:\t{} / {} total graded ({:.0f}%),\t{} / {} ontime graded ({:.0f}%)".format(q, num_graded, total_submitted, 100 if total_submitted==0 else 100*num_graded/total_submitted, num_graded_ontime, total_ontime, 100 if total_ontime==0 else 100*num_graded_ontime/total_ontime))
+        else:
+            for (q, num_graded, num_ungraded) in completion_rates:
+                total_submitted = num_graded + num_ungraded
+                print(" > {}:\t{} / {} graded ({:.0f}%)".format(q, num_graded, total_submitted, 100 if total_submitted==0 else 100*num_graded/(num_graded+num_ungraded)))
+
+    # We need to remove all non-submissions to each question before doing useful operations
+    grades = [g for g in grades if g['was_submitted'] is True]
 
     student_submissions = dict()
     for g in grades:
@@ -263,6 +325,7 @@ if __name__ == "__main__":
     if ERROR_CHECK_PERSISTENCE and os.path.exists("grading_errors.csv"):
         # Load the prior error list, if it exists
         df_prev = pd.read_csv("grading_errors.csv")
+        df_prev['Question'] = df_prev['Question'].astype(str) # a fix since single-question csvs have the name "1" which confuses pandas
         # Find which rows are *shared* between the prior error check and the current one (excluding timestamp column)
         df_shared_rows = df_prev.merge(df_errs.drop(columns=['First seen'], inplace=False), how='inner', indicator=False)
         # Find rows in the current errors which are new (not in prev list)
@@ -275,7 +338,6 @@ if __name__ == "__main__":
         df_errs.to_csv("grading_errors.csv", index=False)
 
     # Collect student 'missed questions' into a spreadsheet
-    num_questions = len(questions)
     if num_questions > 1:
         if 'expectedQuestionsAnswered' not in rubric:
             print("Error: Cannot export which students are missing questions. Set expectedQuestionsAnswered in rubric.")
