@@ -1,0 +1,117 @@
+{
+    "gsAssignmentID": "1102459",
+    "maxScore": 100,
+    "rubric" : {
+        "The student submitted something": 1,
+        "Lede": {
+            "There is no effort to draw the reader in": 0,
+            "It is hard to tell if there is an effort to draw the reader in": 3.5,
+            "The assignment might make an effort to start in a way to draw a reader in": 6,
+           "The assignment makes an effort to start in a special way that would draw an uninformed reader in": 8,
+           "The assignment has an opener that is intended to speak directly to the reader": 10,
+           "The assignment has a compelling opener that grabs the reader's attention and draws them in": 11,
+	   "The lede is so strong that as soon as I saw it, I really wanted to read this!": 12
+        },
+        "Thesis": {
+            "The op-ed is not arguing for anything in particular": 0,
+            "The op-ed might be arguing for something, but I am not sure what": 6,
+            "The op-ed argues for multiple points of view that do not really cohere": 10,
+            "The stance the op-ed takes is clear and coherent to some degree": 12,
+           "The op-ed argues for the importance of the social issue, but does not argue extensively for the value of the algorithmic change": 14,
+           "The argument for the algorithmic change is reasonably clear and coherent": 16,
+           "The argument is organized around a single, clear, and very coherent point related to algorithmic change": 16.5,
+           "The op-ed is on topic, and its main stance is exceptionally coherent and clear": 17
+        },
+        "Technical change": {
+            "There is no design change proposed": 0,
+            "There might be a design change proposed, but it is not clear.": 4,
+            "The described design change is identical to an existing design I know": 6,
+            "The described design change is not to a computational platform": 7.5,
+            "The nature of the described design change is unclear": 7.5,
+           "The described design change is to something outside of the technical system itself (e.g. a change in how the system is marketed)": 8,
+           "The described design change reminds me strongly of an existing design I know about": 9,
+           "The described design change is not technically plausible, but otherwise fulfills the requirements": 10,
+           "The described design change might be to a computational platform, but it is not entirely clear": 10,
+           "The op-ed describes a technical design change to a computational platform which might be plausible": 11,
+           "The op-ed describes a plausible, original, technical design change to a computational platform": 13,
+           "The op-ed describes a specific, original, creative, technically plausible, technical design change to a computational platform": 14,
+           "The design change is specific, original, technically plausible, and exceptionally creative, novel, and compelling": 15
+        },
+        "Points (grade only first 3)": {
+           "No points or evidence in support of the argument are provided": 0,
+           "Points are made without evidence that are tangential to the overall argument": 3.5,
+           "Points are made with evidence but are tangential to the overall argument": 5,
+           "It is possible that the points provided support the overall argument and may provide some evidence for it": 6,
+           "3 points are made for the overall argument, but no evidence is supplied": 6,
+           "Some convincing evidence is provided in support for the overall argument": 10,
+           "3 points are made, of which at least 1 is strong and strongly supported with evidence": 12.5,
+           "3 points generally support the overall argument and mostly have evidence": 13.5,
+           "3 points clearly support the overall argument and evidence is provided for all of them": 15.5,
+           "3 points clearly support the overall argument and compelling evidence provided for all of them": 17,
+           "3 excellent points support the argument, which are very well-grounded in convincing evidence": 18
+        },
+        "Counterargument completeness": {
+           "The op-ed addresses no counterargument": 0,
+           "The op-ed addresses at least one counterargument of some sort": 1,
+           "The op-ed addresses some of the obvious counterarguments": 2.5,
+           "The op-ed addresses most of the obvious counterarguments": 4,
+           "There are no obvious counterarguments but the op-ed still addresses at least one (nonobvious) counterargument": 5,
+           "The op-ed definitely addresses all obvious counterarguments": 5
+        },
+        "Counterargument respect": {
+           "The counterarguments impugn the intelligence and/or morality of possible critics, or there are no counterarguments addressed": 0,
+           "The counterarguments are not really respectful of the intelligence and morality of possible critics": 2,
+           "The counterarguments are addressed in a way that is somewhat respectful to the intelligence and morality of possible critics": 4,
+           "The counterarguments are addressed in a way that clearly respects the intelligence and morality of possible critics": 5
+        },
+        "Counterargument convincing": {
+           "The counterarguments are addressed in an unconvincing way, or are not addressed at all": 0,
+           "The counterarguments might potentially be somewhat convincing": 2,
+           "The counterarguments are addressed in a somewhat convincing way": 4,
+           "The counterarguments are addressed in truly convincing ways": 5
+        },
+        "Conclusion": {
+           "The op-ed has no conclusion": 0,
+           "The op-ed has a conclusion": 5,
+           "The op-ed has a clear conclusion, although it does not completely follow from the overall argument": 7.5,
+           "The op-ed has a clear and logical conclusion which follows from the argument": 8.5,
+           "The  op-ed has a clear and logical conclusion which makes a general suggestion for what should be done differently.": 10,
+           "The op-ed has a clear and logical conclusion which makes a specific, concrete, plausible suggestion for what should be done differently which follows directly from the argument": 11,
+           "The op-ed has a clear and logical conclusion related to the thesis, and includes a closely related concrete action that most readers can and would be likely to do if they believe the overall argument": 12
+        },
+        "Overall": {
+           "The op-ed does not make an argument": 0,
+           "The op-ed seems to be lacking an argument": 3,
+           "The op-ed overall attempts to make an argument for the value of this design change": 6,
+           "The op-ed overall makes an argument for the value of this design change that has some significant problems, but also shows a lot of promise": 7,
+           "The op-ed overall makes a reasonable, thoughtful argument that this design change should be implemented and would improve social impact": 8,
+           "Taken as a whole, the op-ed makes a convincing, compelling, and broadly accessible argument for an original design change that should be implemented and would improve social impact in a specific way": 9,
+           "This is a compelling, relevant argument about a compelling contemporary problem. Real-world, everyday newspaper readers who might not initially agree with the author would be interested to read this argument and be convinced by it. You should submit it for publication!": 10
+        }
+    },
+    "aggr_method" :
+    {
+        "The student submitted something": "sum",
+        "Lede": "max",
+        "Thesis": "max",
+        "Technical change": "max",
+        "Points (grade only first 3)": "max",
+        "Counterargument completeness": "max",
+        "Counterargument respect": "max",
+        "Counterargument convincing": "max",
+        "Conclusion": "max",
+        "Overall": "max"
+    },
+    "shortnames" :
+    {   "The student submitted something": "Submitted",
+        "Lede": "Lede",
+        "Thesis": "Thesis",
+        "Technical change": "Change",
+        "Points (grade only first 3)": "Points",
+        "Counterargument completeness": "Counterarg Complete",
+        "Counterargument respect": "Counterarg Respect",
+        "Counterargument convincing": "Counterarg Convence",
+        "Conclusion": "Conclusion",
+        "Overall": "Overall"
+    }
+}
