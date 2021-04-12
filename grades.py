@@ -266,7 +266,8 @@ if __name__ == "__main__":
     if num_questions > 1:
         print("\nPer question completion rates (assumes you've included a 'was submitted' rubric item per question and filled this out for all submissions):")
         completion_rates = []
-        for q, _ in questions.items():
+        qkeys = sorted(list(questions.keys()))
+        for q in qkeys:
             submitted = [g for g in grades if g['was_submitted'] is True and g['question'] is q]
             submitted_ungraded = [g for g in submitted if g['total_score'] == 0]
 
