@@ -17,7 +17,6 @@ additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
 ERROR_CHECK_PERSISTENCE = True
-SHOW_GRADE_INCOMPLETE_ERRORS = False
 # ===========================
 
 # Loads rubric JSON file
@@ -216,7 +215,7 @@ def calc_grade(row, rubric, question_name, col_names):
         if aggr_method[key] == "max":
             if len(subscores) == 0:
                 incomplete_score = True
-                if SHOW_GRADE_INCOMPLETE_ERRORS:
+                if gs_score > 0:
                     errors.append("No score entered for rubric item: " + str(key))
                 score = 0
             else:
@@ -241,7 +240,7 @@ def calc_grade(row, rubric, question_name, col_names):
     # Check for errors in grading
     # Check whether comments are blank
     if not isinstance(row['Comments'], str) or len(row['Comments'].strip()) == 0:
-        if SHOW_GRADE_INCOMPLETE_ERRORS:
+        if gs_score > 0:
             if incomplete_score:
                 errors.append("Comment is blank, and not all rubric items are completed.")
             else:
