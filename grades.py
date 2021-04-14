@@ -7,16 +7,17 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/workbook2.json'
+rubric_path = 'rubrics/dw3.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/dw2"
+csv_dir = "data/dw3"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
 ERROR_CHECK_PERSISTENCE = True
+SHOW_GRADE_INCOMPLETE_ERRORS = False
 # ===========================
 
 # Loads rubric JSON file
@@ -75,11 +76,48 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
                 simplified_key = filename[:20]
                 questions[simplified_key] = entry.path
 
+    # Load grades for each question
     grades = []
     for name, csv in questions.items():
         print("Loaded question:", name, csv)
         gs = load_gradesheet(rubric, name, csv, only_submitted=only_submitted)
         grades.extend(gs)
+
+    # (Optional) Load lateness markers from score sheet
+    # :: If there's an additional score sheet identified, add "graded/ungraded" and "lateness" info:
+    if additional_scores_sheet is not None:
+        df = pd.read_csv(additional_scores_sheet)
+        num_graded = len(df[df['Status']=="Graded"])
+        num_ungraded = len(df[df['Status']=="Ungraded"])
+        num_ontime = len(df[df['Lateness (H:M:S)']=="00:00:00"])
+        num_graded_ontime = len(df[(df['Status']=="Graded") & (df['Lateness (H:M:S)']=="00:00:00")])
+        num_ungraded_ontime = len(df[(df['Status']=="Ungraded") & (df['Lateness (H:M:S)']=="00:00:00")])
+        num_graded_late = len(df[(df['Status']=="Graded") & (df['Lateness (H:M:S)']!="00:00:00")])
+        num_ungraded_late = len(df[(df['Status']=="Ungraded") & (df['Lateness (H:M:S)']!="00:00:00")])
+
+        df_scores_sheet = df
+        def hms_to_min(hms_str):
+            t = hms_str.split(':')
+            return int(t[0])*60+int(t[1])+int(t[2])/60
+        def lateness(sid):
+            student = df_scores_sheet[df_scores_sheet['SID']==str(sid)]
+            if len(student) == 0:
+                print("Error: Could not find student with SID", sid)
+            elif len(student) > 1:
+                print("Error: Found more than one student with SID", sid)
+            else:
+                return hms_to_min(student['Lateness (H:M:S)'].tolist()[0])
+            return 0
+
+        print("\nTotal submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded, num_ungraded, 100*num_graded/(num_graded+num_ungraded)))
+        print(" > Ontime sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_ontime, num_ungraded_ontime, 100*num_graded_ontime/(num_graded_ontime+num_ungraded_ontime)))
+        print(" > Late sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_late, num_ungraded_late, 100*num_graded_late/(num_graded_late+num_ungraded_late)))
+
+        # Mark lateness in grades
+        for g in grades:
+            if g['sid'] == -1:
+                print('Warning: Student', g['email'], 'has no SID.')
+            g['late'] = lateness(g['sid'])
 
     if to_pandas_df:
         return to_pandas(grades), rubric, questions
@@ -178,7 +216,8 @@ def calc_grade(row, rubric, question_name, col_names):
         if aggr_method[key] == "max":
             if len(subscores) == 0:
                 incomplete_score = True
-                errors.append("No score entered for rubric item: " + str(key))
+                if SHOW_GRADE_INCOMPLETE_ERRORS:
+                    errors.append("No score entered for rubric item: " + str(key))
                 score = 0
             else:
                 score = max(subscores)
@@ -202,17 +241,18 @@ def calc_grade(row, rubric, question_name, col_names):
     # Check for errors in grading
     # Check whether comments are blank
     if not isinstance(row['Comments'], str) or len(row['Comments'].strip()) == 0:
-        if incomplete_score:
-            errors.append("Comment is blank, and not all rubric items are completed.")
-        else:
-            errors.append("Comment is blank after all rubric items were completed.")
+        if SHOW_GRADE_INCOMPLETE_ERRORS:
+            if incomplete_score:
+                errors.append("Comment is blank, and not all rubric items are completed.")
+            else:
+                errors.append("Comment is blank after all rubric items were completed.")
     elif any(s in row['Comments'] for s in ('you', 'You')):
         errors.append("Comment contains the word 'you.'")
 
     # Return the grade details
     return {
         "name" : row["First Name"] + " " + row["Last Name"],
-        "sid" : int(row["SID"]) if not pd.isna(row["SID"]) else -1,
+        "sid" : int(row["SID"]) if not pd.isna(row["SID"]) and (isinstance(row["SID"], float) or row["SID"].isdigit()) else -1,
         "aid" : row["Assignment Submission ID"],
         "qid" : row["Question Submission ID"],
         "email" : row["Email"],
@@ -235,34 +275,9 @@ if __name__ == "__main__":
     # Calculate grades
     grades, rubric, questions = load_grades(rubric_path, csv_dir, only_submitted=False)
 
-    # If there's an additional score sheet identified, add "graded/ungraded" and "lateness" info:
-    is_late_submitter = None
-    if additional_scores_sheet is not None:
-        df = pd.read_csv(additional_scores_sheet)
-        num_graded = len(df[df['Status']=="Graded"])
-        num_ungraded = len(df[df['Status']=="Ungraded"])
-        num_ontime = len(df[df['Lateness (H:M:S)']=="00:00:00"])
-        num_graded_ontime = len(df[(df['Status']=="Graded") & (df['Lateness (H:M:S)']=="00:00:00")])
-        num_ungraded_ontime = len(df[(df['Status']=="Ungraded") & (df['Lateness (H:M:S)']=="00:00:00")])
-        num_graded_late = len(df[(df['Status']=="Graded") & (df['Lateness (H:M:S)']!="00:00:00")])
-        num_ungraded_late = len(df[(df['Status']=="Ungraded") & (df['Lateness (H:M:S)']!="00:00:00")])
-
-        df_scores_sheet = df
-        def is_late_submitter(sid):
-            student = df_scores_sheet[df_scores_sheet['SID']==str(sid)]
-            if len(student) == 0:
-                print("Error: Could not find student with SID", sid)
-            elif len(student) > 1:
-                print("Error: Found more than one student with SID", sid)
-            else:
-                return (student['Lateness (H:M:S)'] != "00:00:00").tolist()[0]
-
-        print("\nTotal submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded, num_ungraded, 100*num_graded/(num_graded+num_ungraded)))
-        print(" > Ontime sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_ontime, num_ungraded_ontime, 100*num_graded_ontime/(num_graded_ontime+num_ungraded_ontime)))
-        print(" > Late sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_late, num_ungraded_late, 100*num_graded_late/(num_graded_late+num_ungraded_late)))
-
     # If there's more than one question, count the grading progress of each:
     num_questions = len(questions)
+    is_late_submitter = additional_scores_sheet is not None
     if num_questions > 1:
         print("\nPer question completion rates (assumes you've included a 'was submitted' rubric item per question and filled this out for all submissions):")
         completion_rates = []
@@ -272,8 +287,8 @@ if __name__ == "__main__":
             submitted_ungraded = [g for g in submitted if g['total_score'] == 0]
 
             if is_late_submitter: # if we have late submission information from the Download Grades sheet...
-                submitted_ontime = [g for g in submitted if not is_late_submitter(g['sid'])]
-                submitted_ungraded_ontime = [g for g in submitted if g['total_score'] == 0 and not is_late_submitter(g['sid'])]
+                submitted_ontime = [g for g in submitted if g['late'] == 0]
+                submitted_ungraded_ontime = [g for g in submitted if g['total_score'] == 0 and g['late'] == 0]
                 completion_rates.append( (q, len(submitted)-len(submitted_ungraded), len(submitted_ungraded), \
                                               len(submitted_ontime)-len(submitted_ungraded_ontime), len(submitted_ungraded_ontime)))
             else:
