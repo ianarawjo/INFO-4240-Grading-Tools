@@ -9,7 +9,12 @@ indiv_rubric_path = 'rubrics/mp3_indiv.json'
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 group_csv_dir = "data/mp3/group"
 indiv_csv_dir = "data/mp3/indiv" # needs to be a different folder
+group_url_qid = '8895124'
+indiv_url_qid = '8927332'
 # ===========================
+
+def grading_url(url_qid, qid):
+    return "https://www.gradescope.com/courses/228839/questions/{}/submissions/{}/grade".format(url_qid, qid)
 
 group_grades, _, _ = load_grades(group_rubric_path, group_csv_dir, only_submitted=False)
 indiv_grades, _, _ = load_grades(indiv_rubric_path, indiv_csv_dir, only_submitted=False)
@@ -32,22 +37,23 @@ for aid in assnIds:
     groups.append((aid, members, indivs))
 
 # Print connected submissions to csv
-export_cols = ["Group #", "Group Submission", "Member 1", "Member 1 Submission", "Member 2", "Member 2 Submission"]
+export_cols = ["Group submission #", "Group question #", "Group Submission", "Member 1", "Member 1 Submission", "Member 2", "Member 2 Submission"]
 export_grades = []
 for (aid, members, indivs) in groups:
-    gsub = members[0]['url']
+    gsub = grading_url(group_url_qid, members[0]['qid'])
     m1 = members[0]['name']
     m2 = members[1]['name'] if len(members) > 1 else "N/A"
     m1sub = "No submission"
     m2sub = "No submission"
-    row = [ aid, gsub, m1 ]
+    row = [ aid, members[0]['qid'], gsub, m1 ]
     if len(indivs) > 0:
-        m1sub = indivs[0]['url']
+        m1sub = grading_url(indiv_url_qid, indivs[0]['qid'])
     if len(indivs) > 1:
-        m2sub = indivs[1]['url']
+        m2sub = grading_url(indiv_url_qid, indivs[1]['qid'])
     row.extend( [m1sub, m2, m2sub] )
     export_grades.append(row)
 
 export_grades.sort(key=lambda r: r[0])
 df_grades = pd.DataFrame(export_grades, columns=export_cols)
+df_grades.sort_values(by=['Group question #'])
 df_grades.to_csv("conn_group_indiv.csv", index=False)
