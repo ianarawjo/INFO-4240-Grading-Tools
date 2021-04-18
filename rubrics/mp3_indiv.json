@@ -1,0 +1,54 @@
+{
+    "gsAssignmentID": "1135053",
+    "maxScore": 55,
+    "rubric" : {
+        "Elicitation technique design": {
+            "A designed elicitation technique is present": 5,
+            "Taking into account the constraints imposed by pandemic circumstances, the technique includes physical or visual techniques which clearly support the elicitation of situated, embodied knowledge from the user": 3,
+            "The technique is clearly designed to lower the perceived barrier between 'designer' and 'user'": 3,
+            "The technique is tailored to the specific setting/activity being designed for": 3,
+            "The design is reasonably creative, thoughtful and appropriate": 1
+        },
+        "Elicitation of rich content": {
+            "No insights elicited": 0,
+            "Some insight elicited, but not detailed": 6,
+            "A small amount of detailed insights elicited": 9,
+            "Some detailed insights elicited": 12,
+            "Reasonable amounts of detailed insight elicited": 14,
+            "Significant amounts of rich, detailed insight elicited": 15
+       },
+       "Reflections": {
+           "Design process does not reflect awareness of what we cover in the course": 0,
+           "Design process reflects any aspect of course content without explicitly referring to it": 3,
+           "Design process as described reflects some aspects of course content, significantly contradicts others, and does not explicitly refer to content":5,
+           "Design process as described reflects some aspects of course content but does not explicitly refer to it":7,
+           "Reflections describes process in a way that reveals clear understanding of course content but does not make explicit reference to it":9,
+           "Reflections describe design process with significant reference to course content, but also clearly misunderstand some significant aspect of course content":9,
+           "Reflections unpack design process by clearly reflecting course content and making at least one explicit reference to it":10,
+           "Reflections unpack design process by clearly reflecting course content and making some references to it":12,
+           "Reflections explicitly, significantly, and correctly reference course content (lecture, readings, potentially outside sources) to justify (or question) decisions made in the design process":13,
+           "Reflections express a deep, clear, and impressive grasp of course content (including lecture and readings) to justify (or question) decisions made in the design process. Goes above and beyond to synthesize new understanding":15
+       },
+       "Suprises": {
+           "No surprises mentioned, no explanation":0,
+           "Didn't find any surprise, but has some explanation of why not":5,
+           "Didn't find any surprises, but has reasonable discussion of why not":6.5,
+           "Mentions at least one surprise that came up":7.5,
+           "Mentions and explains at least one significant surprise that came up in the design process":9,
+           "Thoughtfully documents and reflects on surprises that came up during the course of the design process":10
+       }
+    },
+    "aggr_method" :
+    {
+        "Elicitation technique design": "sum",
+        "Elicitation of rich content": "max",
+        "Reflections": "max",
+        "Suprises": "max"
+    },
+    "shortnames" :
+    {   "Elicitation technique design": "Technique Design",
+        "Elicitation of rich content": "Rich content",
+        "Reflections": "Reflections",
+        "Suprises": "Suprises"
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "gsAssignmentID": "1130303",
+    "maxScore": 45,
+    "rubric" : {
+        "User expertise": {
+            "There is no design": 0,
+            "The design does not appear to reflect any specific user expertise (although it might reflect designer expertise)": 10,
+            "The design might reflect some user expertise": 18,
+            "The design reflects a little bit of user expertise": 26,
+            "The design reflects a basic overall understanding of the user's practice": 30,
+            "The design reflects a basic overall understanding of the user's practice. The design clearly and explicitly reflects some user expertise": 32,
+	        "The design reflects significant user expertise, but it is difficult to discern the link from the design annotations": 32,
+            "The design reflects a reasonable amount of user expertise based in the elicitation": 34,
+            "The design reflects a reasonable amount of user expertise based in the elicitation, explicitly documented through multiple specific pieces of expertise gained through elicitation": 36,
+            "Many of the design decisions reflect significant amounts of user expertise, including different, specific pieces of expertise gained through elicitation": 38,
+	        "Many of the design decisions reflect significant amounts of user expertise, including different, specific pieces of expertise gained through elicitation. The design also reflects a reasonably comprehensive overall understanding of the user's practices, synthesized from the different points noticed in elicitation": 40
+        },
+        "Quality of design": {
+            "Design is not participatory: The design is something that could be expected or predicted without knowing details about this specific user's practices": 0,
+            "OK design: The design has something about it that is unexpected": 1,
+            "Possibly reasonable design: The design seems to express something about the specific user and/or designer": 2,
+            "Reasonable design: The design clearly expresses something about the specific user and/or designer": 3,
+           "Good design: design has an unexpected concept or develops unexpected features based on elicited information": 4,
+           "Superlative design: clever and creative design that is unpredictable, new, and interesting": 5
+        }
+    },
+    "aggr_method" :
+    {
+        "User expertise": "max",
+        "Quality of design": "max"
+    },
+    "shortnames" :
+    {   "User expertise": "User expertise",
+        "Quality of design": "Quality of design"
+    }
+}
