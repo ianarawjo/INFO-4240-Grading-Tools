@@ -7,12 +7,12 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/dw3.json'
+rubric_path = 'rubrics/dw2.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/dw3"
+csv_dir = "data/dw2"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
@@ -268,11 +268,73 @@ def calc_grade(row, rubric, question_name, col_names):
                 row["Assignment Submission ID"] + "#"
     }
 
+# Check for outliers *within* students' question grades (for the same assignment)
+# :: grades must be the same assignment, where every question is worth the same # of points
+# :: pt_diff is how many points difference between question grades before we flag the grades
+def outlier_check(grades, pt_diff=4):
+    outliers = dict()
+
+    # Bucket grades by student
+    student_submissions = dict()
+    for g in grades:
+        if g['was_submitted'] is False: continue
+        elif g['sid'] in student_submissions:
+            student_submissions[g['sid']].append(g)
+        else:
+            student_submissions[g['sid']] = [ g ]
+
+    # For each student, check for outlier pattern:
+    for (sid, question_grades) in student_submissions.items():
+        init_score = -1
+        for g in question_grades:
+            if init_score == -1:
+                init_score = g['total_score']
+            elif abs(g['total_score'] - init_score) >= pt_diff:
+                # Flag this students' grades as inconsistent
+                print('Outlier for student', sid, abs(g['total_score'] - init_score))
+                for g in question_grades:
+                    print(' > Question: {}\tScore: {}\tGrader: {}'.format(g['question'], g['total_score'], g['grader']))
+                outliers[sid] = question_grades
+                break
+
+    return outliers
+
+# Is a TA consistently grading higher or lower than others (for the given grades)?
+def ta_stats(grades):
+    # Bucket grades by grader
+    graders = dict()
+    for g in grades:
+        if g['was_submitted'] is False: continue
+        elif g['grader'] in graders:
+            graders[g['grader']].append(g)
+        else:
+            graders[g['grader']] = [ g ]
+    # Calculate mean+st.dev per grader
+    graders_scores = dict()
+    for (gname, qs) in graders.items():
+        graders_scores[gname] = [g['total_score'] for g in qs]
+    return graders_scores
+    
+def ta_consistency_check(grades):
+    print('TA name, mean score, and st. dev:')
+    graders_scores = ta_stats(grades)
+    graders_stats = []
+    for gname, scores in graders_scores.items():
+        graders_stats.append((gname, stat.mean(scores), stat.stdev(scores)))
+    graders_stats.sort(key=lambda x: x[1])
+    for (gname, m, sd) in graders_stats:
+        print('{:<20s}\t{:.2f}\t{:.2f}'.format(gname[:20], m, sd))
+
 # Command-line loading.
 if __name__ == "__main__":
 
     # Calculate grades
     grades, rubric, questions = load_grades(rubric_path, csv_dir, only_submitted=False)
+
+    print('\n')
+    outlier_check(grades)
+    print('\n')
+    ta_consistency_check(grades)
 
     # If there's more than one question, count the grading progress of each:
     num_questions = len(questions)
