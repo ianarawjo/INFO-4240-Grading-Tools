@@ -3,20 +3,24 @@ import os
 import json
 import datetime
 import statistics as stat
+import numpy as np
 from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/dw2.json'
+rubric_path = 'rubrics/dw3.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/dw2"
+csv_dir = "data/dw3"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
 ERROR_CHECK_PERSISTENCE = True
+# Whether to show TA grade distribution plot
+SHOW_TA_GRADE_DIST = True
+SHOW_TA_GRADE_DIST_ONLY_TA = None # Default: None. Change to EXACT full name (string) to mask in only that TA
 # ===========================
 
 # Loads rubric JSON file
@@ -101,7 +105,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
         def lateness(sid):
             student = df_scores_sheet[df_scores_sheet['SID']==str(sid)]
             if len(student) == 0:
-                print("Error: Could not find student with SID", sid)
+                pass #print("Error: Could not find student with SID", sid)
             elif len(student) > 1:
                 print("Error: Found more than one student with SID", sid)
             else:
@@ -115,7 +119,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
         # Mark lateness in grades
         for g in grades:
             if g['sid'] == -1:
-                print('Warning: Student', g['email'], 'has no SID.')
+                pass #print('Warning: Student', g['email'], 'has no SID.')
             g['late'] = lateness(g['sid'])
 
     if to_pandas_df:
@@ -262,6 +266,7 @@ def calc_grade(row, rubric, question_name, col_names):
         "adjustment": 0 if pd.isna(row['Adjustment']) else row['Adjustment'],
         "total_score" : gs_score,
         "was_submitted" : was_submitted,
+        "inc_score" : incomplete_score,
         "errors" : errors,
         "url": "https://www.gradescope.com/courses/228839/assignments/" + \
                 gsAssignmentID + "/submissions/" + \
@@ -271,19 +276,22 @@ def calc_grade(row, rubric, question_name, col_names):
 # Check for outliers *within* students' question grades (for the same assignment)
 # :: grades must be the same assignment, where every question is worth the same # of points
 # :: pt_diff is how many points difference between question grades before we flag the grades
-def outlier_check(grades, pt_diff=4):
+def outlier_check(grades, pt_diff=5):
     outliers = dict()
 
     # Bucket grades by student
     student_submissions = dict()
     for g in grades:
-        if g['was_submitted'] is False: continue
+        # Skip unsubmitted or incomplete score grades
+        if g['was_submitted'] == False or g['inc_score'] == True: continue
         elif g['sid'] in student_submissions:
             student_submissions[g['sid']].append(g)
         else:
             student_submissions[g['sid']] = [ g ]
 
     # For each student, check for outlier pattern:
+    print('Wide variations between grades for specific students')
+    print('-----------------------------------------------------')
     for (sid, question_grades) in student_submissions.items():
         init_score = -1
         for g in question_grades:
@@ -291,10 +299,11 @@ def outlier_check(grades, pt_diff=4):
                 init_score = g['total_score']
             elif abs(g['total_score'] - init_score) >= pt_diff:
                 # Flag this students' grades as inconsistent
-                print('Outlier for student', sid, abs(g['total_score'] - init_score))
+                print('Wide variation for student {} {} ({} pt difference)'.format(g['name'], g['email'], abs(g['total_score'] - init_score)))
                 for g in question_grades:
-                    print(' > Question: {}\tScore: {}\tGrader: {}'.format(g['question'], g['total_score'], g['grader']))
+                    print(' > Question: {}\tScore: {}\tGrader: {:>16s}\tURL: {}'.format(g['question'], g['total_score'], g['grader'][:16], g['url']))
                 outliers[sid] = question_grades
+                print()
                 break
 
     return outliers
@@ -304,7 +313,8 @@ def ta_stats(grades):
     # Bucket grades by grader
     graders = dict()
     for g in grades:
-        if g['was_submitted'] is False: continue
+        # Skip unsubmitted or incomplete score grades
+        if g['was_submitted'] == False or g['inc_score'] == True: continue
         elif g['grader'] in graders:
             graders[g['grader']].append(g)
         else:
@@ -312,18 +322,42 @@ def ta_stats(grades):
     # Calculate mean+st.dev per grader
     graders_scores = dict()
     for (gname, qs) in graders.items():
-        graders_scores[gname] = [g['total_score'] for g in qs]
+        graders_scores[gname] = [(g['total_score'], g['name'], g['email'], g['url']) for g in qs]
     return graders_scores
-    
+
 def ta_consistency_check(grades):
-    print('TA name, mean score, and st. dev:')
+    print('{:<20s}\t{}\t{}'.format('TA Name', 'Num graded', 'Mean, St. Dev'))
+    print('-----------------------------------------------------')
     graders_scores = ta_stats(grades)
     graders_stats = []
-    for gname, scores in graders_scores.items():
-        graders_stats.append((gname, stat.mean(scores), stat.stdev(scores)))
-    graders_stats.sort(key=lambda x: x[1])
-    for (gname, m, sd) in graders_stats:
-        print('{:<20s}\t{:.2f}\t{:.2f}'.format(gname[:20], m, sd))
+    all_scores = []
+    outliers = []
+
+    # Detect total mean + st dev
+    for gname, data in graders_scores.items():
+        scores = [d[0] for d in data]
+        if not isinstance(gname, str): continue
+        all_scores.extend(scores)
+    total_stdev = stat.stdev(all_scores)
+    total_med = stat.median(all_scores)
+
+    for gname, data in graders_scores.items():
+        if not isinstance(gname, str): continue
+        scores = [d[0] for d in data]
+        for d in data:
+            score = d[0]
+            if abs(score-total_med) > total_stdev*2.5: # flag outliers
+                outliers.append((gname, score, d[1:]))
+        graders_stats.append((gname, len(scores), stat.mean(scores), stat.stdev(scores)))
+
+    graders_stats.sort(key=lambda x: x[2])
+    for (gname, n, m, sd) in graders_stats:
+        print('{:<20s}\t{:<10s}\t{:.2f}\t{:.2f}'.format(gname[:20], str(n), m, sd))
+
+    if len(outliers) > 0:
+        print('\nDetected outliers (grader scores that are 2.5 st. deviations away from total median score):')
+        for o in outliers:
+            print(o[0], o[1], o[2])
 
 # Command-line loading.
 if __name__ == "__main__":
@@ -331,13 +365,15 @@ if __name__ == "__main__":
     # Calculate grades
     grades, rubric, questions = load_grades(rubric_path, csv_dir, only_submitted=False)
 
-    print('\n')
-    outlier_check(grades)
+    num_questions = len(questions)
+    if num_questions > 1:
+        print('\n')
+        outlier_check(grades)
     print('\n')
     ta_consistency_check(grades)
 
     # If there's more than one question, count the grading progress of each:
-    num_questions = len(questions)
+
     is_late_submitter = additional_scores_sheet is not None
     if num_questions > 1:
         print("\nPer question completion rates (assumes you've included a 'was submitted' rubric item per question and filled this out for all submissions):")
@@ -426,6 +462,46 @@ if __name__ == "__main__":
                     students_missing_qs.append( [sid, gs[0]['name'], gs[0]['email'], rubric['expectedQuestionsAnswered']-len(gs)] )
             df_miss = pd.DataFrame(students_missing_qs, columns=["SID", "Name", "Email", "Number Missing"])
             df_miss.to_csv("missing_questions.csv", index=False)
+
+    # Show TA grade distribution
+    if SHOW_TA_GRADE_DIST:
+        import matplotlib
+        matplotlib.use('TkAgg')
+        import matplotlib.pyplot as plt
+
+        def set_axis_style(ax, labels):
+            ax.xaxis.set_tick_params(direction='out')
+            ax.xaxis.set_ticks_position('bottom')
+            ax.set_xticks(np.arange(1, len(labels) + 1))
+            ax.set_xticklabels(labels)
+            ax.set_xlim(0.25, len(labels) + 0.75)
+            ax.set_xlabel('Grader Name')
+
+        complete_grades = [g for g in grades if g['inc_score'] is False]
+        graders_scores = [(g, d) for g, d in ta_stats(complete_grades).items()]
+        graders_scores.sort(key=lambda x: stat.mean([d[0] for d in x[1]]))
+        data = np.array([np.array(sorted([d[0] for d in data])) for (_, data) in graders_scores], dtype=object)
+        total_mean = np.median(np.hstack(data))
+
+        fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(16, 6), sharey=True)
+
+        ax1.set_title('TA Score Distribution')
+        ax1.set_ylabel('Scores')
+        plt.xticks(rotation = 90) # Rotates X-Axis Ticks by 45-degrees
+        ax1.violinplot(data)
+
+        plt.axhline(y=total_mean, color='k', linestyle='dashed', linewidth=1)
+
+        # set style for the axes
+        if SHOW_TA_GRADE_DIST_ONLY_TA is not None:
+            labels = [(g if g == SHOW_TA_GRADE_DIST_ONLY_TA else ".") for (g, _) in graders_scores]
+        else:
+            labels = [g for (g, _) in graders_scores]
+        for ax in [ax1]:
+            set_axis_style(ax, labels)
+
+        plt.subplots_adjust(bottom=0.4, wspace=0.05)
+        plt.show()
 
     # Calculate grading distributions per rubric item
     # item_scores = [[] for i in range(len(rubric['shortnames']))]
