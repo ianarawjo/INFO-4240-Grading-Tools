@@ -418,6 +418,7 @@ if __name__ == "__main__":
     export_cols.extend(["URL", "SID", "Assignment Submission ID", "Question Submission ID"])
     export_grades = []
     for g in grades:
+        if g['inc_score'] == True: continue
         row = [ g['name'], g['email'], g['question'], g['grader'], g['comments'], g['adjustment'], g['total_score'] ]
         row.extend([score for _, score in g['grade'].items()])
         row.extend([g['url'], g['sid'], g['aid'], g['qid']])
