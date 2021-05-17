@@ -1,0 +1,101 @@
+{
+    "gsAssignmentID": "1209425",
+    "maxScore": 100,
+    "rubric" : {
+        "Need": {
+            "A need is articulated which is not commonly addressed through technology, which is a need a human could genuinely or plausibly have, and which has enough ambiguity (is it good or bad?) to trigger reflection": 5,
+            "A need is clearly articulated which is not commonly addressed through technology and we can imagine a human could genuinely or plausibly have, but it is not obviously ambiguous enough to trigger reflection": 4,
+            "A need is reasonably articulated which it is possible to imagine a human could have and which is not in the mainstream of technology": 3.5,
+            "A need is articulated, but it is difficult to understand, or difficult to imagine sympathetically a human could have, or it is commonly addressed by technology": 3,
+            "It is possible to infer a genuine human need": 2,
+            "No human need is mentioned in the assignment": 0
+        },
+        "Early sketches (sketch 1)": {
+            "This sketch represents a correct use of the specified design strategy to create a critical design": 5,
+            "The sketch reflects a reasonable interpretation of the specified design strategy, whether or not the resulting design is critical": 4,
+            "A critical design strategy can be inferred from the sketch, but it is not the one specified": 3.5,
+            "The sketch is beginning to reflect the specified design strategy, but there are some issues with how it is executed": 3.5,
+           "There is a sketch but it does not clearly reflect a specific design strategy": 2,
+           "There is a sketch, but even reading between the lines it can't be tied to a specific design strategy": 1,
+           "There is no design sketch": 0
+        },
+      "Early sketches (sketch 2)": {
+            "This sketch represents a correct use of the specified design strategy to create a critical design": 5,
+            "The sketch reflects a reasonable interpretation of the specified design strategy, whether or not the resulting design is critical": 4,
+            "A critical design strategy can be inferred from the sketch, but it is not the one specified": 3.5,
+            "The sketch is beginning to reflect the specified design strategy, but there are some issues with how it is executed": 3.5,
+           "There is a sketch but it does not clearly reflect a specific design strategy": 2,
+           "There is a sketch, but even reading between the lines it can't be tied to a specific design strategy": 1,
+           "There is no design sketch": 0
+        },
+      "Early sketches (sketch 3)": {
+            "This sketch represents a correct use of the specified design strategy to create a critical design": 5,
+            "The sketch reflects a reasonable interpretation of the specified design strategy, whether or not the resulting design is critical": 4,
+            "A critical design strategy can be inferred from the sketch, but it is not the one specified": 3.5,
+            "The sketch is beginning to reflect the specified design strategy, but there are some issues with how it is executed": 3.5,
+           "There is a sketch but it does not clearly reflect a specific design strategy": 2,
+           "There is a sketch, but even reading between the lines it can't be tied to a specific design strategy": 1,
+           "There is no design sketch": 0
+        },
+        "Design": {
+            "A+: Excellent example of critical design. Like an A, but particularly imaginative and enjoyable, oddly compelling, creating intellectual pleasure through a careful balance of defamiliarization and plausibility that provokes thought": 45,
+            "A: Good example of critical design: An original design that addresses the human need sympathetically, is strange yet familiar enough to communicate a critical design concept, and raises open-ended questions": 42.75,
+            "Closer to an A than a B": 41.4,
+            "Closer to a B than an A": 39.6,
+            "B: Reasonable example of critical design, with some smaller issues in execution; for example, the design has potential, but not be completely plausible, or the design is similar enough to affirmative design that the questions it raises are not completely clear": 38.25,
+           "Closer to a B than a C": 36.9,
+           "Closer to a C than a B": 35.1,
+           "C: Emerging example of critical design, demonstrating understanding of class concepts, but with one or more larger problems in execution; for example, it is similar to a known design, or the questions it raises are about technical issues about the design rather than critical ": 33.75,
+           "Closer to a C than a D": 32.4,
+           "Closer to a D than a C": 30.6,
+           "D: Shows effort and engagement with the material, but the design has many significant issues, reflecting confusion about the nature of critical design": 29.25,
+           "The design is a straightforward affirmative design": 28,
+           "Design is difficult to grade because it is not clear what is intended, and/or seems so far outside of the intentions of the assignment that it is difficult to apply grading standards to it, or it is not clear what part of the description is a design, or it is identical to a known design (e.g. a critical design presented in class)": 25,
+           "No description of a design was submitted": 0
+        },
+        "Lifeworld": {
+           "A+: Excellent example of a lifeworld. It is strongly represented and deftly walks the line of being strange enough to provoke curiosity and plausible enough to project ourselves into it": 25,
+           "A: Good example of a lifeworld that walks the line of being both strange enough to provoke curiosity and plausible enough to project ourselves": 23.75,
+           "Closer to an A than a B": 23,
+           "Closer to a B than an A": 22,
+           "B: Reasonable example of critical design lifeworld, with some smaller issues in execution. This is moving in the direction of being a strong lifeworld. It has some strange aspects and some plausible aspects. It has a lot of potential": 21.75,
+           "Closer to a B than a C": 20.5,
+           "Closer to a C than a B": 19.5,
+           "C: Emerging example of critical design lifeworld which is in at least one way different from our own. It demonstrates understanding of class concepts, but with one or more larger problems in execution":18.75,
+           "Closer to a C than a D":18,
+           "Closer to a D than a C":17,
+           "D: Shows effort and engagement with the material; but has significant issues, for example or it’s hard to really understand what the lifeworld is or how it connects to the critical questions being raised":16.25,
+           "The lifeworld is the same as ours":15,
+           "Lifeworld is difficult to grade because it is not clear what is intended, and/or seems so far outside of the intentions of the assignment that it is difficult to apply grading standards to it, or no lifeworld appears to be represented, or the lifeworld is identical to one that is already known (e.g. an episode of Black Mirror)":12.5,
+           "No description of a design was submitted":0
+        },
+        "Presentation and development": {
+           "The description clearly, creatively, and cleanly communicates a design concept. It is significantly developed from the initial ideas, by not only adding details, but iterating on the concepts involved. The final idea is polished and easy to follow": 10,
+           "The description is reasonably polished. I can follow the design concept. There is significant development from the initial ideas": 8,
+           "The design concept is somewhat understandable. The description has advanced from the initial ideas": 6,
+           "The description is hard to follow": 4,
+           "The final description is similar to one of the initial ideas": 2,
+           "There is no description submitted": 0
+        }
+    },
+    "aggr_method" :
+    {
+        "Need": "max",
+        "Early sketches (sketch 1)": "max",
+        "Early sketches (sketch 2)": "max",
+        "Early sketches (sketch 3)": "max",
+        "Design": "max",
+        "Lifeworld": "max",
+        "Presentation and development": "max"
+    },
+    "shortnames" :
+    {
+        "Need": "Need",
+        "Early sketches (sketch 1)": "Sketch 1",
+        "Early sketches (sketch 2)": "Sketch 2",
+        "Early sketches (sketch 3)": "Sketch 3",
+        "Design": "Design",
+        "Lifeworld": "Lifeworld",
+        "Presentation and development": "Prez and Dev"
+    }
+}
