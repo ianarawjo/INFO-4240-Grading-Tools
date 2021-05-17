@@ -8,12 +8,12 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/dw3.json'
+rubric_path = 'rubrics/dw5.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/dw3"
+csv_dir = "data/dw5"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
@@ -183,6 +183,7 @@ def calc_grade(row, rubric, question_name, col_names):
             # Compute edit distance (this is intensive) and return the closest match.
             # This is because sometimes graders edit the rubric and say, add an extra letter,
             # screwing up the column names for specific questions. We want to ignore these errors.
+            # print(term, col_names)
             closest = get_close_matches(term, col_names, 1)[0]
             return closest
 
@@ -251,6 +252,10 @@ def calc_grade(row, rubric, question_name, col_names):
                 errors.append("Comment is blank after all rubric items were completed.")
     elif any(s in row['Comments'] for s in ('you', 'You')):
         errors.append("Comment contains the word 'you.'")
+    if was_submitted == False and gs_score > 0:
+        # Someone marked the "not/submitted" rubric item when they shouldn't have...
+        errors.append("'Was submitted' rubric item mismatched; this question has a score.")
+        was_submitted = True
 
     # Return the grade details
     return {
@@ -337,6 +342,7 @@ def ta_consistency_check(grades):
     for gname, data in graders_scores.items():
         scores = [d[0] for d in data]
         if not isinstance(gname, str): continue
+        if len(scores) <= 1: continue
         all_scores.extend(scores)
     total_stdev = stat.stdev(all_scores)
     total_med = stat.median(all_scores)
@@ -344,6 +350,7 @@ def ta_consistency_check(grades):
     for gname, data in graders_scores.items():
         if not isinstance(gname, str): continue
         scores = [d[0] for d in data]
+        if len(scores) <= 1: continue
         for d in data:
             score = d[0]
             if abs(score-total_med) > total_stdev*2.5: # flag outliers
