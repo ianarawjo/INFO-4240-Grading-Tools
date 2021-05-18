@@ -1,9 +1,5 @@
 *.DS_Store
-grading_errors.csv
-all_grades.csv
-missing_questions.csv
-slip_days.csv
-conn_group_indiv.csv
+*.csv
 data/*
 __pycache__/*
 .ipynb_checkpoints/*

@@ -2,6 +2,14 @@ from grades import load_grades
 import os
 import pandas as pd
 
+# The expected format is columns=["Name", "Email", "Extra Slip Days", "Excluding"]
+# where name and email are the student's, and extra slip days is an int.
+# 'Excluding' marks certain assignments to exclude from the calculation for that particular student
+# (e.g., they had a sudden emergency). Normally this should be blank.
+# If you need to add to excluding, you put the key of the rubric_data_map (below)
+# corresponding to the assignment you wish to exclude. Multiple can be comma-separated (no spaces).
+PATH_TO_EXTRA_SLIP_DAYS_CSV = 'data/extra_slip_days.csv' # Set to None if you don't have this
+
 # Map rubric files to directories containing all assignment eval sheets from GS.
 # This assumes the json rubrics are in /rubrics and the assignment folders are in the /data folder.
 # **Assumes you have SCORE SHEETS in each assignment directory! These are required for Lateness calculation!!**
@@ -10,19 +18,24 @@ rubric_data_map = {
     'mp2': 'mp2',
     'dw1': 'dw1',
     'dw2': 'dw2',
-    'dw3': 'dw3'
+    'dw3': 'dw3',
+    'mp3_indiv': 'mp3/indiv',
+    # 'mp3_group': 'mp3/group',
+    'mp4': 'mp4',
+    'dw4': 'dw4'
 }
 INITIAL_SLIPS = 10 # the number of slip days every student starts with
 
 # Read extra slip days sheet
-df = pd.read_csv('data/extra_slip_days.csv')
-
 excluding_assns = {}
-excluding_df = df.dropna(subset=['Excluding'])
-for index, row in excluding_df.iterrows():
-    excluding_assns[row['Email'].strip().lower()] = row['Excluding'].split(',')
+if PATH_TO_EXTRA_SLIP_DAYS_CSV:
+    df = pd.read_csv(PATH_TO_EXTRA_SLIP_DAYS_CSV)
+    excluding_df = df.dropna(subset=['Excluding'])
+    for index, row in excluding_df.iterrows():
+        excluding_assns[row['Email'].strip().lower()] = row['Excluding'].split(',')
 
 # For each assignment, extract grades, and sum num of late days across assignments
+# special_check = {}
 slip_days = {}
 emails_to_names = {}
 for rubric_name, dir_name in rubric_data_map.items():
@@ -42,6 +55,7 @@ for rubric_name, dir_name in rubric_data_map.items():
                 num_slips_used = int(g['late'] / 1440)+1
             else:
                 num_slips_used = 0
+
             # Calculate *how* late (in days, 24hr periods=1440 min)
             if email in slip_days:
                 slip_days[email] += num_slips_used
@@ -50,12 +64,13 @@ for rubric_name, dir_name in rubric_data_map.items():
             seen_sids[email] = True
 
 # Read extra slip days sheet, and subtract from the total used:
-for index, row in df.iterrows():
-    email = row['Email'].strip().lower()
-    if email in slip_days:
-        slip_days[email] = slip_days[email]-int(row['Extra Slip Days'])
-    else:
-        slip_days[email] = -int(row['Extra Slip Days'])
+if PATH_TO_EXTRA_SLIP_DAYS_CSV:
+    for index, row in df.iterrows():
+        email = row['Email'].strip().lower()
+        if email in slip_days:
+            slip_days[email] = slip_days[email]-int(row['Extra Slip Days'])
+        else:
+            slip_days[email] = -int(row['Extra Slip Days'])
 
 # Collect remaining slip days into a spreadsheet
 rem_slips = []

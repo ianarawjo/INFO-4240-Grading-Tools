@@ -8,12 +8,12 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/dw5.json'
+rubric_path = 'rubrics/checkin.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/dw5"
+csv_dir = "data/checkin"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
@@ -58,6 +58,8 @@ def to_pandas(grades):
 def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
     global additional_scores_sheet
 
+    print("\n== Loading grades for assignment '{}' ==".format(rubric_path))
+
     # Load rubric
     rubric = load_rubric(rubric_path)
 
@@ -82,7 +84,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
     # Load grades for each question
     grades = []
     for name, csv in questions.items():
-        print("Loaded question:", name, csv)
+        print(" - Loaded question:", name, csv)
         gs = load_gradesheet(rubric, name, csv, only_submitted=only_submitted)
         grades.extend(gs)
 
@@ -112,7 +114,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
                 return hms_to_min(student['Lateness (H:M:S)'].tolist()[0])
             return 0
 
-        print("\nTotal submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded, num_ungraded, 100*num_graded/(num_graded+num_ungraded)))
+        print("Total submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded, num_ungraded, 100*num_graded/(num_graded+num_ungraded)))
         print(" > Ontime sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_ontime, num_ungraded_ontime, 100*num_graded_ontime/(num_graded_ontime+num_ungraded_ontime)))
         print(" > Late sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_late, num_ungraded_late, 100*num_graded_late/(num_graded_late+num_ungraded_late)))
 

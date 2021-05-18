@@ -1,0 +1,15 @@
+{
+    "gsAssignmentID": "965994",
+    "maxScore": 5,
+    "expectedQuestionsAnswered": 1,
+    "wasSubmittedItem": "Submission presents a good faith in attempt to make a good design response",
+    "rubric" : {
+        "Submission presents a good faith in attempt to make a good design response": 0
+    },
+    "aggr_method" :
+    {   "Submission presents a good faith in attempt to make a good design response": "max"
+    },
+    "shortnames" :
+    {   "Submission presents a good faith in attempt to make a good design response": "Submitted"
+    }
+}
