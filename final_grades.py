@@ -22,9 +22,12 @@ PATH_TO_QUIZ_DIR = 'data/quizzes'
 # :: If you don't know what this is, set to None.
 PATH_TO_QUIZ_EXCEPTIONS_JSON = "data/quiz_exceptions.json" # could be None
 
-# Where the final exam CSVs are. Note that these are just GS "Export Grades" csvs;
+# Where the final exam GS CSVs are. Note that these are just GS "Export Grades" csvs;
 # they aren't loaded by the fine-grained question loader in grades.py.
 PATH_TO_FINALS = "data/final"
+
+# Special extra credit for Spring '21
+PATH_TO_ATI_SURVEY_2 = "data/ati_survey_2.csv"
 
 # Whether to export grade reports to pdfs
 PRINT_STUDENT_REPORTS = False
@@ -112,7 +115,6 @@ def read_student(row):
     name = row['Student']
     roster[sid] = Student(email, sid, name)
     roster[sid].set_grade('extra_credit_1', float(row['Active Learning Initiative Survey (221004)']))
-    # roster[sid].set_grade('extra_credit_2', float(row['ALI Survey 2 (245236)'])) # EDIT when you have it
 df.apply(read_student, axis=1)
 
 ''' === LOAD FINAL EXAM GRADES === '''
@@ -124,6 +126,20 @@ for csv in final_csvs:
     df = pd.read_csv(csv)
     df = df[df['Status']=='Graded'] # Consider only exams marked Graded
     df.apply(read_final_exam, axis=1) # Read exam score into the dictionary of Students
+
+''' === LOAD SECOND ATI SURVEY EXTRA CREDIT === '''
+emails_to_sids = {}
+for sid, student in roster.items():
+    emails_to_sids[student.email] = sid
+def read_ati_survey_2(row):
+    email = row['netid'].strip().lower() + "@cornell.edu"
+    if email not in emails_to_sids:
+        print("Warning: Student", email, "that took ATI Survey 2 is not in final Canvas roster. Skipping.")
+        return
+    sid = emails_to_sids[email]
+    roster[sid].set_grade('extra_credit_2', 3)
+df = pd.read_csv(PATH_TO_ATI_SURVEY_2)
+df.apply(read_ati_survey_2, axis=1)
 
 ''' === LOAD QUIZ GRADES === '''
 # :: Quiz names should be in format: [Month#]-[Day#]
@@ -186,7 +202,6 @@ max_score['mp3'] = 100.0
 # For each assignment, extract grades and set in that Student obj
 # :: NOTE: We have to keep track of slip days *chronologically* w/ assignments
 # :: in order to decide when to take off for lateness.
-emails_to_names = {}
 for rubric_name, dir_name in rubric_data_map.items():
     rubric_path, data_path = os.path.join('rubrics', rubric_name+'.json'), os.path.join('data', dir_name)
     if not (os.path.exists(rubric_path) and os.path.exists(data_path)):
@@ -202,16 +217,21 @@ for rubric_name, dir_name in rubric_data_map.items():
         score = g['total_score']
         roster[sid].add_grade(rubric_name, score)
 
-        # Add any extra credit
-        if rubric_name == 'dw1' and roster[sid].grade_for('extra_credit_1') > 0:
-            roster[sid].add_grade(rubric_name, 1)
-        if rubric_name == 'dw5' and roster[sid].grade_for('extra_credit_2') > 0:
-            roster[sid].add_grade(rubric_name, 3)
 
+
+''' === ADD EXTRA CREDIT BONUSES === '''
+print("\n== Adding extra credit bonus points ==")
+for sid, student in roster.items():
+    if student.grade_for('extra_credit_1') > 0:
+        student.add_grade('dw1', 1)
+        print(' - 1 pt EC to DW1 for', roster[sid].name, roster[sid].email)
+    if student.grade_for('extra_credit_2') > 0:
+        student.add_grade('dw5', 3)
+        print(' - 3 pt EC to DW5 for', roster[sid].name, roster[sid].email)
 
 ''' === THE FINAL COUNTDOWN TALLY === '''
 # Now we should have all grades loaded. For each student, we need to tally grades
-print('{:<10s}\t{}\t{}\t{}\t{}\t{}\t{}'.format('Name', 'SID', 'DW', 'MP', 'Quiz', 'Slip mod', 'Total'))
+print('\n{:>20s}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format('Name', 'SID', 'DW', 'MP', 'Quiz', 'Exam', 'Slip mod', 'Total'))
 final_grades = []
 for sid, student in roster.items():
 
