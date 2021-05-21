@@ -22,6 +22,10 @@ PATH_TO_QUIZ_DIR = 'data/quizzes'
 # :: If you don't know what this is, set to None.
 PATH_TO_QUIZ_EXCEPTIONS_JSON = "data/quiz_exceptions.json" # could be None
 
+# Where the final exam CSVs are. Note that these are just GS "Export Grades" csvs;
+# they aren't loaded by the fine-grained question loader in grades.py.
+PATH_TO_FINALS = "data/final"
+
 # Whether to export grade reports to pdfs
 PRINT_STUDENT_REPORTS = False
 DIR_FOR_GRADE_REPORT_PDFS = 'data/grade_pdfs'
@@ -45,15 +49,15 @@ rubric_data_map = {
 
 # Grade mapping
 letter_grade_map = {
-    98: "A+",
-    95: "A",
-    92: "A-",
-    88: "B+",
-    85: "B",
-    82: "B-",
-    78: "C+",
-    75: "C",
-    72: "C-",
+    97.5: "A+",
+    93.5: "A",
+    90: "A-",
+    87.5: "B+",
+    83.5: "B",
+    80: "B-",
+    77.5: "C+",
+    73.5: "C",
+    70: "C-",
     60: "D",
     0: "F"
 }
@@ -108,7 +112,18 @@ def read_student(row):
     name = row['Student']
     roster[sid] = Student(email, sid, name)
     roster[sid].set_grade('extra_credit_1', float(row['Active Learning Initiative Survey (221004)']))
+    # roster[sid].set_grade('extra_credit_2', float(row['ALI Survey 2 (245236)'])) # EDIT when you have it
 df.apply(read_student, axis=1)
+
+''' === LOAD FINAL EXAM GRADES === '''
+def read_final_exam(row):
+    sid = int(row['SID'])
+    roster[sid].set_grade('final_exam', int(row['Total Score']))
+final_csvs = [entry.path for entry in os.scandir(PATH_TO_FINALS) if entry.path.endswith(".csv")]
+for csv in final_csvs:
+    df = pd.read_csv(csv)
+    df = df[df['Status']=='Graded'] # Consider only exams marked Graded
+    df.apply(read_final_exam, axis=1) # Read exam score into the dictionary of Students
 
 ''' === LOAD QUIZ GRADES === '''
 # :: Quiz names should be in format: [Month#]-[Day#]
@@ -138,6 +153,10 @@ for entry in os.scandir(PATH_TO_QUIZ_DIR):
     else:
         proper_submission_time = dateutil.parser.parse('2021-0{}-{} 16:21:00 UTC'.format(month, day))
 
+    # Special exception quizzes
+    if int(month) == 3 and int(day) == 25:
+        proper_submission_time = dateutil.parser.parse('2021-0{}-{} 03:59:00 UTC'.format(month, int(day)+1))
+
     def calc_quiz_grade(row):
         sid = row['sis_id']
         if sid not in roster: return # if person dropped the class, skip
@@ -159,10 +178,10 @@ for entry in os.scandir(PATH_TO_QUIZ_DIR):
     # For each student's attempt, calculate lateness + final score:
     df.apply(calc_quiz_grade, axis=1)
 
-
 ''' === LOAD ASSIGNMENT GRADES === '''
 # The max scores/points for each assignment
 max_score = dict()
+max_score['mp3'] = 100
 
 # For each assignment, extract grades and set in that Student obj
 # :: NOTE: We have to keep track of slip days *chronologically* w/ assignments
@@ -186,6 +205,9 @@ for rubric_name, dir_name in rubric_data_map.items():
         # Add any extra credit
         if rubric_name == 'dw1' and roster[sid].grade_for('extra_credit_1') > 0:
             roster[sid].add_grade(rubric_name, 1)
+        if rubric_name == 'dw5' and roster[sid].grade_for('extra_credit_2') > 0:
+            roster[sid].add_grade(rubric_name, 3)
+
 
 ''' === THE FINAL COUNTDOWN TALLY === '''
 # Now we should have all grades loaded. For each student, we need to tally grades
@@ -223,19 +245,17 @@ for sid, student in roster.items():
     # Miniprojects --all weighted equally
     mp_final_perc = 0
     mp_scores = ''
-    for a in ['mp1', 'mp2', 'mp3_indiv', 'mp3_group', 'mp4']:
+    student.set_grade('mp3', student.grade_for('mp3_indiv') + student.grade_for('mp3_group'))
+    for a in ['mp1', 'mp2', 'mp3', 'mp4']:
         perc = student.grade_for(a) / max_score[a]
-        if 'mp3' in a:  mp_final_perc += perc * 0.5
-        else:           mp_final_perc += perc
-        if a == 'mp3_indiv': mp_scores += '['
-        if a == 'mp3_group':
-            mp_scores += "{:.1f}] ".format(perc*100)
-        else:
-            mp_scores += "{:.1f} ".format(perc*100)
+        mp_final_perc += perc
     mp_final_perc /= 4.0
 
     # Tally total quiz score (percentage)
     quiz_final_perc = sum([student.grade_for(q) for q in quizzes]) / len(quizzes)
+
+    # Extract final exam score (if taken)
+    exam_final_perc = student.grade_for('final_exam') / 100.0
 
     # Tally any slip days
     slip_mod = 0
@@ -251,26 +271,29 @@ for sid, student in roster.items():
     Participation: 100.0")'''
 
     # Final percentage grade
-    final_grade = (40*dw_final_perc + 40*mp_final_perc + 5*quiz_final_perc) / 85.0 * 100 - slip_mod
+    if exam_final_perc == 0:
+        final_grade = (40*dw_final_perc + 40*mp_final_perc + 5*quiz_final_perc) / 85.0 * 100 - slip_mod
+    else:
+        final_grade = (40*dw_final_perc + 40*mp_final_perc + 5*quiz_final_perc + 15*exam_final_perc) - slip_mod
 
     # Calculate final letter grade
     final_letter_grade = grade_mapping(final_grade)
 
-    final_grades.append((student.name, student.email, student.sid, dw_final_perc*100, dw_scores, mp_final_perc*100, mp_scores, quiz_final_perc*100, -slip_mod, final_grade, final_letter_grade))
+    final_grades.append((student.name, student.email, student.sid, dw_final_perc*100, dw_scores, mp_final_perc*100, mp_scores, quiz_final_perc*100, exam_final_perc*100, -slip_mod, final_grade, final_letter_grade))
 
 ''' === PRETTY PRINT FINAL GRADE TABLE === '''
-final_grades.sort(key=lambda x: x[9]) # sort by final grade
+final_grades.sort(key=lambda x: x[10]) # sort by final grade
 for g in final_grades:
-    print('{:>20s}\t{:.2f}\t{:.2f}\t{:.2f}\t-{:.2f}\t{:.2f}\t{}'.format(g[0], g[3], g[5], g[7], g[8], g[9], g[10]))
+    print('{:>20s}\t{:.2f}\t{:.2f}\t{:.2f}\t{:.2f}\t{:.2f}\t{:.2f}\t{}'.format(g[0], g[3], g[5], g[7], g[8], g[9], g[10], g[11]))
 
 ''' === PRETTY PRINT FINAL GRADE DISTRIBUTION === '''
-scores = [g[9] for g in final_grades]
+scores = [g[10] for g in final_grades]
 frequency, bins = np.histogram(scores, bins=20, range=[0, 100]) # Compute frequency and bins
 for b, f in zip(bins[1:], frequency):
     print(round(b, 1), ' '.join(np.repeat('*', f)))
 
 ''' === EXPORT FINAL GRADE TABLE === '''
-df_slips = pd.DataFrame(final_grades, columns=["Name", "Email", "SID", "DW Final", "DWs: 1 2 3 (4) 5", "MP Final", "MPs: 1 2 [3_indiv 3_group] 4", "Quizzes", "Slip Penalty (points docked from final percentage)", "Final Perc", "Calc Letter Grade"])
+df_slips = pd.DataFrame(final_grades, columns=["Name", "Email", "SID", "DW Final", "DWs: Checkin 1 2 3 (4) 5", "MP Final", "MPs: 1 2 [3_indiv 3_group] 4", "Quizzes", "Final Exam", "Slip Penalty (points docked from final percentage)", "Final Perc", "Calc Letter Grade"])
 df_slips.to_csv("final_grades.csv", index=False)
 
 ''' ------------------------------------------------------ '''
