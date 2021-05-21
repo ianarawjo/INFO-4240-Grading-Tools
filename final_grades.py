@@ -181,7 +181,7 @@ for entry in os.scandir(PATH_TO_QUIZ_DIR):
 ''' === LOAD ASSIGNMENT GRADES === '''
 # The max scores/points for each assignment
 max_score = dict()
-max_score['mp3'] = 100
+max_score['mp3'] = 100.0
 
 # For each assignment, extract grades and set in that Student obj
 # :: NOTE: We have to keep track of slip days *chronologically* w/ assignments
@@ -249,6 +249,7 @@ for sid, student in roster.items():
     for a in ['mp1', 'mp2', 'mp3', 'mp4']:
         perc = student.grade_for(a) / max_score[a]
         mp_final_perc += perc
+        mp_scores += "{:.1f} ".format(perc*100)
     mp_final_perc /= 4.0
 
     # Tally total quiz score (percentage)
