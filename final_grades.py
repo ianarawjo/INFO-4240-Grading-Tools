@@ -231,7 +231,7 @@ for sid, student in roster.items():
 
 ''' === THE FINAL COUNTDOWN TALLY === '''
 # Now we should have all grades loaded. For each student, we need to tally grades
-print('\n{:>20s}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format('Name', 'SID', 'DW', 'MP', 'Quiz', 'Exam', 'Slip mod', 'Total'))
+print('\n{:>20s}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format('Name', 'DW', 'MP', 'Quiz', 'Exam', 'Slip', 'Total', 'Letter'))
 final_grades = []
 for sid, student in roster.items():
 
