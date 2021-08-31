@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import sys
 import json
 import datetime
 import statistics as stat
@@ -8,12 +9,12 @@ from difflib import get_close_matches
 
 # == PART YOU SHOULD EDIT ==
 # Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/checkin.json'
+rubric_path = 'rubrics/checkin-fa21.json'
 # Put directory where you're storing all CSVs for this specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/checkin"
+csv_dir = "data/testing"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
@@ -21,6 +22,12 @@ ERROR_CHECK_PERSISTENCE = True
 # Whether to show TA grade distribution plot
 SHOW_TA_GRADE_DIST = True
 SHOW_TA_GRADE_DIST_ONLY_TA = None # Default: None. Change to EXACT full name (string) to mask in only that TA
+# ===========================
+
+# == COMMAND LINE ==
+if len(sys.argv) == 3:
+    csv_dir = sys.argv[1]
+    rubric_path = sys.argv[2]
 # ===========================
 
 # Loads rubric JSON file
@@ -86,6 +93,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
     for name, csv in questions.items():
         print(" - Loaded question:", name, csv)
         gs = load_gradesheet(rubric, name, csv, only_submitted=only_submitted)
+        print("     ", len(gs))
         grades.extend(gs)
 
     # (Optional) Load lateness markers from score sheet
@@ -115,8 +123,11 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
             return 0
 
         print("Total submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded, num_ungraded, 100*num_graded/(num_graded+num_ungraded)))
-        print(" > Ontime sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_ontime, num_ungraded_ontime, 100*num_graded_ontime/(num_graded_ontime+num_ungraded_ontime)))
-        print(" > Late sumissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_late, num_ungraded_late, 100*num_graded_late/(num_graded_late+num_ungraded_late)))
+        print(" > Ontime submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_ontime, num_ungraded_ontime, 100*num_graded_ontime/(num_graded_ontime+num_ungraded_ontime)))
+        if num_graded_late + num_ungraded_late > 0:
+            print(" > Late submissions: {} fully graded, {} left to grade ({:.2f}% done)".format(num_graded_late, num_ungraded_late, 100*num_graded_late/(num_graded_late+num_ungraded_late)))
+        else:
+            print(" > Late submissions: 0")
 
         # Mark lateness in grades
         for g in grades:
@@ -134,7 +145,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
 def load_gradesheet(rubric, question_name, csv, only_submitted=True):
     df = pd.read_csv(csv)
     df.drop(index=[len(df)-1, len(df)-2, len(df)-3], inplace=True)
-    df.dropna(subset=['SID'], inplace=True)
+    # df.dropna(subset=['SID'], inplace=True)
 
     grades = df.apply(lambda row: calc_grade(row, rubric, question_name, df.columns), axis=1)
 
@@ -196,9 +207,9 @@ def calc_grade(row, rubric, question_name, col_names):
         # Is single rubric item w/ no subitems
         if isinstance(val, int):
             col = col_inc_term(key)
-            if was_submitted_check is not None and key == was_submitted_item:
+            if was_submitted_check != None and key == was_submitted_item:
                 # This is a special rubric item to mark if the current question had a submission.
-                was_submitted = row[col] == "true" or row[col] is True or row[col] == "TRUE"
+                was_submitted = row[col] == "true" or row[col] == True or row[col] == "TRUE"
                 if was_submitted_check == '-': was_submitted = not was_submitted
                 scores[shortnames[key]] = val if was_submitted else 0 # for consistency
             else:
@@ -275,7 +286,7 @@ def calc_grade(row, rubric, question_name, col_names):
         "was_submitted" : was_submitted,
         "inc_score" : incomplete_score,
         "errors" : errors,
-        "url": "https://www.gradescope.com/courses/228839/assignments/" + \
+        "url": "https://www.gradescope.com/courses/288777/assignments/" + \
                 gsAssignmentID + "/submissions/" + \
                 row["Assignment Submission ID"] + "#"
     }
@@ -346,6 +357,10 @@ def ta_consistency_check(grades):
         if not isinstance(gname, str): continue
         if len(scores) <= 1: continue
         all_scores.extend(scores)
+
+    if len(all_scores) == 0:
+        return
+
     total_stdev = stat.stdev(all_scores)
     total_med = stat.median(all_scores)
 
@@ -391,6 +406,9 @@ if __name__ == "__main__":
         for q in qkeys:
             submitted = [g for g in grades if g['was_submitted'] is True and g['question'] is q]
             submitted_ungraded = [g for g in submitted if g['total_score'] == 0]
+
+            # print("For question", q)
+            # ta_consistency_check(submitted)
 
             if is_late_submitter: # if we have late submission information from the Download Grades sheet...
                 submitted_ontime = [g for g in submitted if g['late'] == 0]
@@ -487,10 +505,10 @@ if __name__ == "__main__":
             ax.set_xlim(0.25, len(labels) + 0.75)
             ax.set_xlabel('Grader Name')
 
-        complete_grades = [g for g in grades if g['inc_score'] is False]
+        complete_grades = [g for g in grades if g['inc_score'] == False]
         graders_scores = [(g, d) for g, d in ta_stats(complete_grades).items()]
         graders_scores.sort(key=lambda x: stat.mean([d[0] for d in x[1]]))
-        data = np.array([np.array(sorted([d[0] for d in data])) for (_, data) in graders_scores], dtype=object)
+        data = [np.array(sorted([d[0] for d in data])) for (_, data) in graders_scores] #, dtype=object)
         total_mean = np.median(np.hstack(data))
 
         fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(16, 6), sharey=True)
