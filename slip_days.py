@@ -125,6 +125,9 @@ for name, email, slips in rem_slips:
         print(name, email, slips)
 
 print("\n== Students missing assignment submissions ==")
+missing_assns = dict()
+for assn, _ in rubric_data_map.items():
+    missing_assns[assn] = []
 for sid, student in roster.items():
     printed_missing_header = False
     if student.email in slip_days:
@@ -137,3 +140,8 @@ for sid, student in roster.items():
             printed_missing_header = True
         days_missing = int(lateness.total_seconds() / (1440*60)) + 1
         print("   {} by {} days, {} secs. This is -= {} slip days. If they submit, they will have {} slip days remaining.".format(assn, lateness.days, lateness.seconds, days_missing, slips-days_missing))
+        missing_assns[assn].append(student.email)
+
+print("\n== All emails of students missing each assignment ==")
+for assn, emails in missing_assns.items():
+    print(assn, ":", ', '.join(emails))
