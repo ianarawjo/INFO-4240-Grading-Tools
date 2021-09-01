@@ -93,7 +93,6 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
     for name, csv in questions.items():
         print(" - Loaded question:", name, csv)
         gs = load_gradesheet(rubric, name, csv, only_submitted=only_submitted)
-        print("     ", len(gs))
         grades.extend(gs)
 
     # (Optional) Load lateness markers from score sheet
