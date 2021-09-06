@@ -14,7 +14,7 @@ rubric_path = 'rubrics/checkin-fa21.json'
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/testing"
+csv_dir = "data/fa21/checkin"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
@@ -354,10 +354,11 @@ def ta_consistency_check(grades):
     for gname, data in graders_scores.items():
         scores = [d[0] for d in data]
         if not isinstance(gname, str): continue
-        if len(scores) <= 1: continue
+        if len(scores) == 0: continue
         all_scores.extend(scores)
 
     if len(all_scores) == 0:
+        print("No scores detected.")
         return
 
     total_stdev = stat.stdev(all_scores)
@@ -366,12 +367,15 @@ def ta_consistency_check(grades):
     for gname, data in graders_scores.items():
         if not isinstance(gname, str): continue
         scores = [d[0] for d in data]
-        if len(scores) <= 1: continue
-        for d in data:
-            score = d[0]
-            if abs(score-total_med) > total_stdev*2.5: # flag outliers
-                outliers.append((gname, score, d[1:]))
-        graders_stats.append((gname, len(scores), stat.mean(scores), stat.stdev(scores)))
+        if len(scores) == 0: continue
+        elif len(scores) == 1:
+            graders_stats.append((gname, 1, scores[0], 0))
+        else:
+            for d in data:
+                score = d[0]
+                if abs(score-total_med) > total_stdev*2.5: # flag outliers
+                    outliers.append((gname, score, d[1:]))
+            graders_stats.append((gname, len(scores), stat.mean(scores), stat.stdev(scores)))
 
     graders_stats.sort(key=lambda x: x[2])
     for (gname, n, m, sd) in graders_stats:
