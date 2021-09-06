@@ -144,7 +144,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
 def load_gradesheet(rubric, question_name, csv, only_submitted=True):
     df = pd.read_csv(csv)
     df.drop(index=[len(df)-1, len(df)-2, len(df)-3], inplace=True)
-    # df.dropna(subset=['SID'], inplace=True)
+    df.dropna(subset=['SID'], inplace=True)
 
     grades = df.apply(lambda row: calc_grade(row, rubric, question_name, df.columns), axis=1)
 
@@ -408,14 +408,18 @@ if __name__ == "__main__":
         qkeys = sorted(list(questions.keys()))
         for q in qkeys:
             submitted = [g for g in grades if g['was_submitted'] is True and g['question'] is q]
-            submitted_ungraded = [g for g in submitted if g['total_score'] == 0]
+            submitted_ungraded = [g for g in submitted if g['total_score'] == 0 or g['inc_score'] is True]
+
+            # print("For question", q)
+            # for g in submitted:
+            #     print(g['grader'], g['name'], g['total_score'])
 
             # print("For question", q)
             # ta_consistency_check(submitted)
 
             if is_late_submitter: # if we have late submission information from the Download Grades sheet...
                 submitted_ontime = [g for g in submitted if g['late'] == 0]
-                submitted_ungraded_ontime = [g for g in submitted if g['total_score'] == 0 and g['late'] == 0]
+                submitted_ungraded_ontime = [g for g in submitted if g['late'] == 0 and (g['total_score'] == 0 or g['inc_score'] is True)]
                 completion_rates.append( (q, len(submitted)-len(submitted_ungraded), len(submitted_ungraded), \
                                               len(submitted_ontime)-len(submitted_ungraded_ontime), len(submitted_ungraded_ontime)))
             else:
