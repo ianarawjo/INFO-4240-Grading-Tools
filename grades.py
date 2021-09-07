@@ -14,7 +14,7 @@ rubric_path = 'rubrics/checkin-fa21.json'
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/fa21/checkin"
+csv_dir = "data/checkin"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
@@ -76,17 +76,22 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
         exit(0)
 
     # Load csv files as 'questions'
+    # :: Recurses into subdirectories at csv_path.
     questions = dict()
-    for entry in os.scandir(csv_dir):
-        if (entry.path.endswith(".csv")):
-            filename = os.path.splitext(os.path.basename(entry.path))[0]
-            if filename[-6:] == "scores":
-                additional_scores_sheet = entry.path
-            elif filename[-13:] == "Please_ignore":
-                continue # skip the correction sheet
-            else:
-                simplified_key = filename[:20]
-                questions[simplified_key] = entry.path
+    def load_dir(dir_path, recurse=1):
+        for entry in os.scandir(dir_path):
+            if os.path.isdir(entry.path) and recurse > 0:
+                load_dir(entry.path, recurse=0)
+            elif entry.path.endswith(".csv"):
+                filename = os.path.splitext(os.path.basename(entry.path))[0]
+                if "_scores" in filename:
+                    additional_scores_sheet = entry.path
+                elif filename[-13:] == "Please_ignore":
+                    continue # skip the correction sheet
+                else:
+                    simplified_key = filename[:20]
+                    questions[simplified_key] = entry.path
+    load_dir(csv_dir)
 
     # Load grades for each question
     grades = []
@@ -269,9 +274,13 @@ def calc_grade(row, rubric, question_name, col_names):
         errors.append("'Was submitted' rubric item mismatched; this question has a score.")
         was_submitted = True
 
+    # Compatibility issues
+    # :: GS seems to have changed their eval sheets from "First/Last Name" cols to just a "Name" col.
+    name = row['Name'] if 'Name' in row else (row["First Name"] + " " + row["Last Name"])
+
     # Return the grade details
     return {
-        "name" : row["First Name"] + " " + row["Last Name"],
+        "name" : name,
         "sid" : int(row["SID"]) if not pd.isna(row["SID"]) and (isinstance(row["SID"], float) or row["SID"].isdigit()) else -1,
         "aid" : row["Assignment Submission ID"],
         "qid" : row["Question Submission ID"],
