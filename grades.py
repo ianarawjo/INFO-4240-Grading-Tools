@@ -79,6 +79,7 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
     # :: Recurses into subdirectories at csv_path.
     questions = dict()
     def load_dir(dir_path, recurse=1):
+        global additional_scores_sheet
         for entry in os.scandir(dir_path):
             if os.path.isdir(entry.path) and recurse > 0:
                 load_dir(entry.path, recurse=0)
