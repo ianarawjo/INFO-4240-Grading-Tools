@@ -10,7 +10,7 @@ from load_roster import load_roster
 # (e.g., they had a sudden emergency). Normally this should be blank.
 # If you need to add to excluding, you put the key of the rubric_data_map (below)
 # corresponding to the assignment you wish to exclude. Multiple can be comma-separated (no spaces).
-PATH_TO_EXTRA_SLIP_DAYS_CSV = None #'data/extra_slip_days.csv' # Set to None if you don't have this
+PATH_TO_EXTRA_SLIP_DAYS_CSV = 'data/extra_slip_days.csv' # Set to None if you don't have this
 
 # Path to the Canvas roster (download Gradebook csv) for this class.
 # :: This is used to determine who is still in the class.
@@ -117,6 +117,7 @@ def calculate_slip_days():
             email = row['Email'].strip().lower()
             if email in slip_days:
                 slip_days[email] = slip_days[email]-int(row['Extra Slip Days'])
+                print("Detected extra slip days for", email, "=", row['Extra Slip Days'])
             else:
                 slip_days[email] = -int(row['Extra Slip Days'])
 
@@ -135,7 +136,6 @@ def calculate_slip_days():
         # Find any missing assignments + gen info
         for assn, lateness in student.missing_submissions.items():
             days_missing = int(lateness.total_seconds() / (1440*60)) + 1
-            print("Student {} is missing assignment {}.".format(student.name, rubric_name))
             missing_info += "{} by {} days, {} hrs, {} secs. This is {} slip days. If you were to submit at the time this email was sent, you would have {} slip days remaining.\n".format(full_assn_names[assn], lateness.days, int(lateness.seconds/(60*60)), lateness.seconds%60, days_missing, slips-days_missing)
 
         rem_slips.append( [name, email, slips, missing_info] )
