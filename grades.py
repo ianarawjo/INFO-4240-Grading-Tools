@@ -18,10 +18,10 @@ csv_dir = "data/checkin"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
-ERROR_CHECK_PERSISTENCE = True
+ERROR_CHECK_PERSISTENCE = False
 # Whether to show TA grade distribution plot
 SHOW_TA_GRADE_DIST = True
-SHOW_TA_GRADE_DIST_ONLY_TA = None # Default: None. Change to EXACT full name (string) to mask in only that TA
+SHOW_TA_GRADE_DIST_ONLY_TA = "x" # None # Default: None. Change to EXACT full name (string) to mask in only that TA
 # ===========================
 
 # == COMMAND LINE ==
@@ -98,7 +98,8 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
     grades = []
     for name, csv in questions.items():
         print(" - Loaded question:", name, csv)
-        gs = load_gradesheet(rubric, name, csv, only_submitted=only_submitted)
+        num = int(os.path.basename(csv).split("_")[0])
+        gs = load_gradesheet(rubric, name, csv, num, only_submitted=only_submitted)
         grades.extend(gs)
 
     # (Optional) Load lateness markers from score sheet
@@ -147,12 +148,12 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
 
 # Read in all the grades for a single GS eval sheet
 # :: Returns grades as a list of dicts. See end of calc_grade for format.
-def load_gradesheet(rubric, question_name, csv, only_submitted=True):
+def load_gradesheet(rubric, question_name, csv, question_num, only_submitted=True):
     df = pd.read_csv(csv)
     df.drop(index=[len(df)-1, len(df)-2, len(df)-3], inplace=True)
     df.dropna(subset=['SID'], inplace=True)
 
-    grades = df.apply(lambda row: calc_grade(row, rubric, question_name, df.columns), axis=1)
+    grades = df.apply(lambda row: calc_grade(row, rubric, question_name, df.columns, question_num), axis=1)
 
     if only_submitted:
         grades = [g for g in grades if g['was_submitted'] is True] # cull the Nones
@@ -160,7 +161,7 @@ def load_gradesheet(rubric, question_name, csv, only_submitted=True):
     return grades
 
 # Calculate the grade for a specific row of a GS eval sheet
-def calc_grade(row, rubric, question_name, col_names):
+def calc_grade(row, rubric, question_name, col_names, question_num):
     scores = dict()
     no_score = pd.isna(row['Score']) or row['Score'] == 0
     gs_score = 0 if no_score else row['Score']
@@ -297,7 +298,7 @@ def calc_grade(row, rubric, question_name, col_names):
         "errors" : errors,
         "url": "https://www.gradescope.com/courses/288777/assignments/" + \
                 gsAssignmentID + "/submissions/" + \
-                row["Assignment Submission ID"] + "#"
+                row["Assignment Submission ID"] + "#" + "Question_" + str(question_num)
     }
 
 # Check for outliers *within* students' question grades (for the same assignment)
@@ -471,6 +472,17 @@ if __name__ == "__main__":
     df_grades = pd.DataFrame(export_grades, columns=export_cols)
     df_grades.to_csv("all_grades.csv", index=False)
 
+    # Export only what is left to grade:
+    export_cols = ["Grader", "Name", "Email", "Question", "URL"]
+    export_grades = []
+    for g in grades:
+        if g['inc_score'] == False: continue
+        row = [ g['grader'], g['name'], g['email'], g['question'], g['url'] ]
+        export_grades.append(row)
+    export_grades.sort(key=lambda r: r[3])
+    df_leftgrades = pd.DataFrame(export_grades, columns=export_cols)
+    df_leftgrades.to_csv("left_to_grade.csv", index=False)
+
     # Collect grading errors into a spreadsheet
     aggr_errs = []
     for sid, gs in student_submissions.items():
@@ -541,7 +553,7 @@ if __name__ == "__main__":
         if SHOW_TA_GRADE_DIST_ONLY_TA is not None:
             labels = [(g if g == SHOW_TA_GRADE_DIST_ONLY_TA else ".") for (g, _) in graders_scores]
         else:
-            labels = [g for (g, _) in graders_scores]
+            labels = [(g + " ({})".format(len(_))) for (g, _) in graders_scores]
         for ax in [ax1]:
             set_axis_style(ax, labels)
 

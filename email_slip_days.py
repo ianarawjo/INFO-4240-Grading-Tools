@@ -1,6 +1,9 @@
 # Import smtplib for the actual sending function
 import smtplib, ssl
 import time
+import os
+import pandas as pd
+TEMP_STORAGE = "./_temp_passed_emails.txt"
 
 # Special mode to print output to console
 PRINT_TO_CONSOLE = True
@@ -10,7 +13,6 @@ if not PRINT_TO_CONSOLE:
     exit(0) # if ready, change this to "pass"
 
 # Import slip days data
-import pandas as pd
 df_slips = pd.read_csv("data/slip_days.csv")
 
 # Generate message data
@@ -74,14 +76,45 @@ password = input("Type your password and press enter: ")
 # Create a secure SSL context
 context = ssl.create_default_context()
 
+# Check if there's already a list of names. This helps us
+# keep state as the GMail server might kick us out at random moments.
+emails_sent = []
+if os.path.isfile(TEMP_STORAGE):
+    with open(TEMP_STORAGE) as f:
+        txt = f.read()
+        emails_sent = txt.split(",")
+
 # Login and send email
+excepted = False
 with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
     server.login(sender_email, password)
     # Loop through messages to each student
     for name, receiver_email, message in msgs:
-        # Send email to student
+        # Skip anyone who has already been messaged:
+        if receiver_email in emails_sent: continue
+
+        # Try to send email to student
         print("Sending to", name, receiver_email)
-        server.sendmail(sender_email, receiver_email, message)
+        try:
+            server.sendmail(sender_email, receiver_email, message)
+        except Exception as e:
+            # Server failed us. Print error + break out of loop.
+            print("Server error: {0}".format(err))
+            excepted = True
+            break
+
+        # Keep track of what was sent
+        emails_sent.append(receiver_email)
 
         # Wait 3 seconds so gmail doesn't get angry at us
         time.sleep(3)
+
+# If there was an exception, save which emails were sent.
+# Otherwise, delete the "sent emails" file, since everyone's been sent an email.
+if excepted:
+    txt = ",".join(emails_sent)
+    with open(TEMP_STORAGE, 'w') as f:
+        f.write(txt)
+else:
+    if os.path.isfile(TEMP_STORAGE):
+        os.remove(TEMP_STORAGE)
