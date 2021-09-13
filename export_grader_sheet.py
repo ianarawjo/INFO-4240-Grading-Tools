@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv('all_grades.csv')[['Question', 'URL']]
+df = pd.read_csv('left_to_grade.csv')[['Question', 'URL']]
 df.sort_values(by=['Question'], inplace=True)
 df["Grader"] = "" # Empty grader column
 df["Graded?"] = 0
