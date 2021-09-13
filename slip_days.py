@@ -76,9 +76,11 @@ def calculate_slip_days():
                 if email in excluding_assns and dir_name in excluding_assns[email]:
                     num_slips_used = 0 # override lateness for exclusions
                     print("Excluding", dir_name, "from student", email, "slip days")
-                elif g['late'] > 0:
+                elif g['late'] > 0 and g['late'] > 20: # Grace period of 20 minutes.
                     # Calculate *how* late (in days, 24hr periods=1440 min)
                     num_slips_used = int(g['late'] / 1440)+1
+                    if g['sid'] in roster:
+                        roster[g['sid']].flag_late_submission(rubric_name, (g['late'], num_slips_used))
                 else:
                     num_slips_used = 0
 
@@ -132,18 +134,23 @@ def calculate_slip_days():
         student = roster[sid]
         name = student.name.split(", ")[1] + " " + student.name.split(", ")[0]
         missing_info = ""
+        late_info = ""
+
+        # Find any late submissions + gen info
+        for assn, (lateness, slips_off) in student.late_submissions.items(): # here, lateness is an integer in minutes
+            late_info += "{} by {} days, {} hrs, {} mins. This cost {} slip days.\n".format(full_assn_names[assn], int(lateness/1440), int((lateness%1440)/60), int(lateness%60), slips_off)
 
         # Find any missing assignments + gen info
         for assn, lateness in student.missing_submissions.items():
             days_missing = int(lateness.total_seconds() / (1440*60)) + 1
             missing_info += "{} by {} days, {} hrs, {} secs. This is {} slip days. If you were to submit at the time this email was sent, you would have {} slip days remaining.\n".format(full_assn_names[assn], lateness.days, int(lateness.seconds/(60*60)), lateness.seconds%60, days_missing, slips-days_missing)
 
-        rem_slips.append( [name, email, slips, missing_info] )
+        rem_slips.append( [name, email, slips, late_info, missing_info] )
     rem_slips.sort(key=lambda x: x[2])
 
     # Print 'struggling students' to console:
     print("\n== Students with low remaining slip days (according to *submitted* assignments) ==")
-    for name, email, slips, _ in rem_slips:
+    for name, email, slips, _, __ in rem_slips:
         if slips <= 2:
             print(name, email, slips)
 
@@ -170,7 +177,7 @@ def calculate_slip_days():
         print(assn, ":", ', '.join(emails))
 
     # Save info to a spreadsheet
-    df_slips = pd.DataFrame(rem_slips, columns=["Name", "Email", "Slip Days Remaining", "Missing Assignments"])
+    df_slips = pd.DataFrame(rem_slips, columns=["Name", "Email", "Slip Days Remaining", "Late Assignments", "Missing Assignments"])
     df_slips.to_csv(SAVE_TO, index=False)
     print("Saved remaining slip days to spreadsheet", SAVE_TO)
 

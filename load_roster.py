@@ -8,6 +8,7 @@ class Student:
         self.name = name
         self.grades = dict()
         self.missing_submissions = dict()
+        self.late_submissions = dict()
 
     # Return the students' grade for the given assignment.
     # :: If the grade's missing, count as a zero.
@@ -25,6 +26,9 @@ class Student:
 
     def flag_missing_submission(self, assn, lateness):
         self.missing_submissions[assn] = lateness
+
+    def flag_late_submission(self, assn, lateness):
+        self.late_submissions[assn] = lateness
 
 # Load Canvas roster. Outputs dict of Student objects indexed by SID.
 def load_roster(PATH_TO_CANVAS_ROSTER):

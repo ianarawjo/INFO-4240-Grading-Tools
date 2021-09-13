@@ -21,7 +21,7 @@ additional_scores_sheet = None
 ERROR_CHECK_PERSISTENCE = False
 # Whether to show TA grade distribution plot
 SHOW_TA_GRADE_DIST = True
-SHOW_TA_GRADE_DIST_ONLY_TA = "x" # None # Default: None. Change to EXACT full name (string) to mask in only that TA
+SHOW_TA_GRADE_DIST_ONLY_TA = None # None # Default: None. Change to EXACT full name (string) to mask in only that TA
 # ===========================
 
 # == COMMAND LINE ==

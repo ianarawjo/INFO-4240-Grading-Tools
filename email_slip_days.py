@@ -3,17 +3,23 @@ import smtplib, ssl
 import time
 import os
 import pandas as pd
+from getpass import getpass
 TEMP_STORAGE = "./_temp_passed_emails.txt"
+SLIP_DAYS_CSV = "data/slip_days.csv"
 
 # Special mode to print output to console
-PRINT_TO_CONSOLE = True
-
-# DON'T RUN THIS SCRIPT UNLESS YOU'RE READY!
-if not PRINT_TO_CONSOLE:
-    exit(0) # if ready, change this to "pass"
+PRINT_TO_CONSOLE = input("If you want to email everyone in {}, type 'e'. Otherwise, type anything else to print to console.".format(SLIP_DAYS_CSV))
+if PRINT_TO_CONSOLE == 'e':
+    PRINT_TO_CONSOLE = False
+    check = input("Are you sure you want to email everyone in {}? If so, type 'y': ".format(SLIP_DAYS_CSV))
+    if check != 'y':
+        print("Exiting. Come back when you're ready!")
+        exit(0)
+else:
+    PRINT_TO_CONSOLE = True
 
 # Import slip days data
-df_slips = pd.read_csv("data/slip_days.csv")
+df_slips = pd.read_csv(SLIP_DAYS_CSV).dropna(how='all')
 
 # Generate message data
 def gen_messages(df_slips):
@@ -24,15 +30,23 @@ def gen_messages(df_slips):
         receiver_email = row['Email'].strip().lower()
         slips = row['Slip Days Remaining']
 
-        low_slip_msg = "" if slips > 1 else " If you have negative slip days, you are out of slip days and have handed in at least one assignment late with a deduction."
+        low_slip_msg = "" if slips > 2 else " If you have negative slip days, you are out of slip days and have handed in at least one assignment late with a deduction."
 
         missing_assns_msg = row['Missing Assignments']
         something_missing = False if not isinstance(missing_assns_msg, str) else (len(missing_assns_msg) > 0)
         if something_missing:
-            missing_assns_msg = "We have detected that you haven't submitted {} assignments, including:\n - ".format(len(missing_assns_msg.split("\n"))-1) + \
+            missing_assns_msg = "We have detected that you're missing {} assignment submission(s), including:\n - ".format(len(missing_assns_msg.split("\n"))-1) + \
                                 "\n - ".join(row['Missing Assignments'].split("\n"))[:-4]
         else:
-            missing_assns_msg = "We have detected that you have submitted all major assignments so far. Great job! :)"
+            missing_assns_msg = "We have detected that you've submitted all major assignments so far. Great job! :)"
+
+        late_assns_msg = row['Late Assignments']
+        something_late = False if not isinstance(late_assns_msg, str) else (len(late_assns_msg) > 0)
+        if something_late:
+            late_assns_msg = "We have detected {} assignment(s) submitted late, including:\n - ".format(len(late_assns_msg.split("\n"))-1) + \
+                                "\n - ".join(row['Late Assignments'].split("\n"))[:-4]
+        else:
+            late_assns_msg = "*Of the assignments you've submitted,* we've detected that you've submitted them all on-time. Awesome!"
 
         reply_option = "Do not reply."
         if something_missing or slips < 0:
@@ -48,10 +62,12 @@ This email summarizes any remaining slip days and outstanding assignments you ma
 
 {}
 
-Note that slip days are only tallied for *submitted* assignments. If you decide not to submit an assignment, it will not factor into your slip days; however, missing assignments heavily affect your grade and are strongly discouraged.
+{}
+
+The initial number of slip days are {}. Note that slip days are only tallied for *submitted* assignments. If you decide not to submit an assignment, it will not factor into your slip days; however, missing assignments heavily affect your grade and are strongly discouraged.
 
 This message was sent from Python. {} If you want to discuss about a problem/difficulty or report a discrepancy, you can ask a question on EdDiscussion, attend office hours, or talk to your section instructor or the professor.
-See office hours here: https://courses.infosci.cornell.edu/info4240/2021fa/policies.html""".format(name, slips, low_slip_msg, missing_assns_msg, reply_option)
+See office hours here: https://courses.infosci.cornell.edu/info4240/2021fa/policies.html""".format(name, slips, low_slip_msg, missing_assns_msg, late_assns_msg, 7, reply_option)
 
         # Append to messages list
         msgs.append((name, receiver_email, message))
@@ -68,10 +84,11 @@ if PRINT_TO_CONSOLE:
     exit(0)
 
 # == SEND EMAILS ==
+print("Opening email port...\n(If you're using GMail, please ensure 'Less secure app access' is ON in GMail settings: https://support.google.com/accounts/answer/6010255?hl=en )")
 port = 465  # For SSL
 smtp_server = "smtp.gmail.com"
-sender_email = "xl656@cornell.edu"  # Enter your address
-password = input("Type your password and press enter: ")
+sender_email = input("Type your gmail address: ") # Enter your address
+password = getpass("Type your password and press enter: ")
 
 # Create a secure SSL context
 context = ssl.create_default_context()
@@ -112,9 +129,12 @@ with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
 # If there was an exception, save which emails were sent.
 # Otherwise, delete the "sent emails" file, since everyone's been sent an email.
 if excepted:
+    print("Terminated prematurely. Saving which emails were successfully sent...")
     txt = ",".join(emails_sent)
     with open(TEMP_STORAGE, 'w') as f:
         f.write(txt)
 else:
     if os.path.isfile(TEMP_STORAGE):
         os.remove(TEMP_STORAGE)
+
+print("Done!")
