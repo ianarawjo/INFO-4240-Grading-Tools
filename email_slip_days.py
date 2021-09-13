@@ -50,7 +50,7 @@ def gen_messages(df_slips):
 
         reply_option = "Do not reply."
         if something_missing or slips < 0:
-            "You may reply and grad TA Xiaoyan can respond to any concerns."
+            reply_option = "You may reply and grad TA Xiaoyan can respond to any concerns."
 
         message = """Subject: INFO 4240 Slip Days Remaining
 
@@ -80,6 +80,7 @@ msgs = gen_messages(df_slips)
 # == PRINT EMAILS TO CONSOLE TO CHECK ==
 if PRINT_TO_CONSOLE:
     for name, receiver_email, message in msgs:
+        print("==========================================")
         print(name, receiver_email, ":\n", message, "\n\n")
     exit(0)
 
