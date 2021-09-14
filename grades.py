@@ -402,21 +402,38 @@ if __name__ == "__main__":
 
     # Calculate grades
     grades, rubric, questions = load_grades(rubric_path, csv_dir, only_submitted=False)
-
+    qkeys = sorted(list(questions.keys()))
     num_questions = len(questions)
+
     if num_questions > 1:
         print('\n')
         outlier_check(grades)
     print('\n')
     ta_consistency_check(grades)
 
-    # If there's more than one question, count the grading progress of each:
+    # Special check --unassigned questions:
+    total_unassigned = []
+    unassigned = dict()
+    unassigned_urls = dict()
+    unscored = [g for g in grades if g['was_submitted'] is False and g['total_score'] == 0]
+    for g in unscored:
+        email = g['email']
+        if email not in unassigned_urls: unassigned_urls[email] = g['url'].split("#")[0]
+        if email not in unassigned: unassigned[email] = 1
+        else: unassigned[email] += 1
+    for key, num_unassigned in unassigned.items():
+        if num_unassigned == num_questions:
+            print("Unassigned detected for", key, unassigned_urls[key])
+            total_unassigned.append(["", "*Unassigned*", unassigned_urls[key]])
+    print("Total unassigned: ", len(total_unassigned))
+    df_unassigned = pd.DataFrame(total_unassigned, columns=["Grader", "Question", "URL"])
+    df_unassigned.to_csv("unassigned_to_question.csv", index=False)
 
+    # If there's more than one question, count the grading progress of each:
     is_late_submitter = additional_scores_sheet is not None
     if num_questions > 1:
         print("\nPer question completion rates (assumes you've included a 'was submitted' rubric item per question and filled this out for all submissions):")
         completion_rates = []
-        qkeys = sorted(list(questions.keys()))
         for q in qkeys:
             submitted = [g for g in grades if g['was_submitted'] is True and g['question'] is q]
             submitted_ungraded = [g for g in submitted if g['total_score'] == 0 or g['inc_score'] is True]
@@ -473,13 +490,14 @@ if __name__ == "__main__":
     df_grades.to_csv("all_grades.csv", index=False)
 
     # Export only what is left to grade:
-    export_cols = ["Grader", "Name", "Email", "Question", "URL"]
+    export_cols = ["Grader", "Question", "URL"]
     export_grades = []
     for g in grades:
         if g['inc_score'] == False: continue
-        row = [ g['grader'], g['name'], g['email'], g['question'], g['url'] ]
+        row = [ g['grader'], g['question'], g['url'] ]
         export_grades.append(row)
-    export_grades.sort(key=lambda r: r[3])
+    export_grades += total_unassigned
+    export_grades.sort(key=lambda r: r[1])
     df_leftgrades = pd.DataFrame(export_grades, columns=export_cols)
     df_leftgrades.to_csv("left_to_grade.csv", index=False)
 

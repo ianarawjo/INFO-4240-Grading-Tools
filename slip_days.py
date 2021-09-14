@@ -58,6 +58,7 @@ def calculate_slip_days():
     # For each assignment, extract grades, and sum num of late days across assignments
     # special_check = {}
     slip_days = {}
+    flagged_email_domains = {}
     emails_to_names = {}
     emails_to_sids = {}
     mp3_slips_used = {}
@@ -69,6 +70,14 @@ def calculate_slip_days():
         seen_sids = {}
         for g in grades:
             email = g['email'].strip()
+
+            # Special check that email is @cornell.edu. Note that emails on Canvas roster will be @cornell,
+            # but on GS may not be. Was not aware this was possible, but had a student w/ an NYU email on GS.
+            if email.split('@')[-1] != "cornell.edu" and email not in flagged_email_domains:
+                flagged_email_domains[email] = True
+                print("Student {} has email {} that is not a Cornell address. This may cause errors, as the Canvas roster uses @cornell emails.".format(g['name'], g['email']))
+                input("Press any key to continue and ignore this warning...")
+
             if email not in emails_to_names:
                 emails_to_names[email] = g['name']
                 emails_to_sids[email] = g['sid']
