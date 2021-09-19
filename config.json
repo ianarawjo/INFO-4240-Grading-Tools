@@ -1,0 +1,21 @@
+{
+    "assignments": {
+        "checkin": {
+            "rubric": "rubrics/checkin-fa21.json",
+            "data": "data/checkin",
+            "url": "https://www.gradescope.com/courses/288777/assignments/1455574/",
+            "duedate": "Sep 5 2021 10:00PM",
+            "fullname": "Design Workbook Check-in"
+        },
+        "dw1": {
+            "rubric": "rubrics/dw1-fa21.json",
+            "data": "data/dw1",
+            "url": "https://www.gradescope.com/courses/288777/assignments/1484747/",
+            "duedate": "Sep 19 2021 10:00PM",
+            "fullname": "Design Workbook Unit 1"
+        }
+    },
+    "rosterCSV": "data/roster/roster-fa21.csv",
+    "extraSlipsCSV": "data/extra_slip_days.csv",
+    "slipDaysCSVExportPath": "data/slip_days.csv"
+}

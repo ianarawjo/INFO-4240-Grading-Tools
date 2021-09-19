@@ -3,9 +3,14 @@ import smtplib, ssl
 import time
 import os
 import pandas as pd
+import load
 from getpass import getpass
+
+# Load central config json
+config = load.config()
+
 TEMP_STORAGE = "./_temp_passed_emails.txt"
-SLIP_DAYS_CSV = "data/slip_days.csv"
+SLIP_DAYS_CSV = config["slipDaysCSVExportPath"]
 
 # Special mode to print output to console
 PRINT_TO_CONSOLE = input("If you want to email everyone in {}, type 'e'. Otherwise, type anything else to print to console.".format(SLIP_DAYS_CSV))
@@ -48,6 +53,8 @@ def gen_messages(df_slips):
         else:
             late_assns_msg = "*Of the assignments you've submitted,* we've detected that you've submitted them all on-time. Awesome!"
 
+        extra_slips_msg = row['Extra Slips']
+
         reply_option = "Do not reply."
         if something_missing or slips < 0:
             reply_option = "You may reply and grad TA Xiaoyan can respond to any concerns."
@@ -64,10 +71,10 @@ This email summarizes any remaining slip days and outstanding assignments you ma
 
 {}
 
-The initial number of slip days are {}. Note that slip days are only tallied for *submitted* assignments. If you decide not to submit an assignment, it will not factor into your slip days; however, missing assignments heavily affect your grade and are strongly discouraged.
+The initial number of slip days are {}. {} Note that slip days are only tallied for *submitted* assignments. If you decide not to submit an assignment, it will not factor into your slip days; however, missing assignments heavily affect your grade and are strongly discouraged.
 
 This message was sent from Python. {} If you want to discuss about a problem/difficulty or report a discrepancy, you can ask a question on EdDiscussion, attend office hours, or talk to your section instructor or the professor.
-See office hours here: https://courses.infosci.cornell.edu/info4240/2021fa/policies.html""".format(name, slips, low_slip_msg, missing_assns_msg, late_assns_msg, 7, reply_option)
+See office hours here: https://courses.infosci.cornell.edu/info4240/2021fa/policies.html""".format(name, slips, low_slip_msg, missing_assns_msg, late_assns_msg, 7, extra_slips_msg, reply_option)
 
         # Append to messages list
         msgs.append((name, receiver_email, message))

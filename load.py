@@ -1,4 +1,26 @@
 import pandas as pd
+import json
+
+# Load config file
+# :: Takes: path to central config JSON that specifies locations of assignments, assignment info, etc.
+def config(PATH="config.json"):
+    with open(PATH, 'r') as f:
+        info = json.load(f)
+    return info
+
+# Prompt for (valid) assignment name:
+def promptSelectAssignment(info=None):
+    if info is None:
+        info = config()
+    name = None
+    while name is None:
+        print("Enter name of assignment you wish to operate on. Available assignments are:")
+        print(" | " + "\n | ".join(info["assignments"].keys()))
+        name = input(" > ")
+        if name not in info["assignments"]:
+            print("Could not find that assignment.")
+            name = None
+    return name, info["assignments"][name]
 
 # Wrapper class for students
 class Student:
@@ -31,7 +53,7 @@ class Student:
         self.late_submissions[assn] = lateness
 
 # Load Canvas roster. Outputs dict of Student objects indexed by SID.
-def load_roster(PATH_TO_CANVAS_ROSTER):
+def roster(PATH_TO_CANVAS_ROSTER):
     roster = dict()
     df = pd.read_csv(PATH_TO_CANVAS_ROSTER)
     df.drop(index=[1, 2, len(df)-1], inplace=True)

@@ -7,14 +7,13 @@ import statistics as stat
 import numpy as np
 from difflib import get_close_matches
 
-# == PART YOU SHOULD EDIT ==
-# Put filepath of rubric to use for this assignment. Rubric is JSON file.
-rubric_path = 'rubrics/checkin-fa21.json'
-# Put directory where you're storing all CSVs for this specific assignment.
+# == PART YOU CAN EDIT ==
+# NOTE: This file uses "config.json" to load rubric and grade csvs.
+# It needs a filepath of rubric to use for an assignment. Rubric is JSON file.
+# It also needs where you're storing all CSVs for a specific assignment.
 # :: Generate CSVs from clicking "Export Evaluations" in GradeScope.
 # :: You can also include the 'scores' csv by clicking "Download Grades." Drop that
 # :: into the dir (don't rename it!) if you want more info on graded/ungraded and lateness.
-csv_dir = "data/checkin"
 additional_scores_sheet = None
 # Whether to keep persistent timestamps on when a particular error was first seen
 # (Note: if the error is no longer present, it just won't appear.)
@@ -93,6 +92,12 @@ def load_grades(rubric_path, csv_dir, to_pandas_df=False, only_submitted=True):
                     simplified_key = filename[:20]
                     questions[simplified_key] = entry.path
     load_dir(csv_dir)
+
+    # Remove any questions rubric wants us to skip:
+    if "skipQuestions" in rubric:
+        for q in rubric["skipQuestions"]:
+            if q in questions:
+                del questions[q]
 
     # Load grades for each question
     grades = []
@@ -399,6 +404,12 @@ def ta_consistency_check(grades):
 
 # Command-line loading.
 if __name__ == "__main__":
+    import load
+
+    # Ask for which assignment to load:
+    assn_name, assn_info = load.promptSelectAssignment()
+    rubric_path = assn_info["rubric"]
+    csv_dir = assn_info["data"]
 
     # Calculate grades
     grades, rubric, questions = load_grades(rubric_path, csv_dir, only_submitted=False)
@@ -423,7 +434,7 @@ if __name__ == "__main__":
         else: unassigned[email] += 1
     for key, num_unassigned in unassigned.items():
         if num_unassigned == num_questions:
-            print("Unassigned detected for", key, unassigned_urls[key])
+            print("\nUnassigned detected for", key, unassigned_urls[key])
             total_unassigned.append(["", "*Unassigned*", unassigned_urls[key]])
     print("Total unassigned: ", len(total_unassigned))
     df_unassigned = pd.DataFrame(total_unassigned, columns=["Grader", "Question", "URL"])
@@ -431,6 +442,7 @@ if __name__ == "__main__":
 
     # If there's more than one question, count the grading progress of each:
     is_late_submitter = additional_scores_sheet is not None
+    graded_but_score_zero = []
     if num_questions > 1:
         print("\nPer question completion rates (assumes you've included a 'was submitted' rubric item per question and filled this out for all submissions):")
         completion_rates = []
@@ -493,9 +505,11 @@ if __name__ == "__main__":
     export_cols = ["Grader", "Question", "URL"]
     export_grades = []
     for g in grades:
-        if g['inc_score'] == False: continue
-        row = [ g['grader'], g['question'], g['url'] ]
-        export_grades.append(row)
+        if g['inc_score'] == False:
+            if g['total_score'] == 0: # check for weird graded-but-zero assignments:
+                export_grades.append([ g['grader'], "Warning: Grade is 0 but marked as fully graded.", g['url'] ])
+            continue
+        export_grades.append([ g['grader'], g['question'], g['url'] ])
     export_grades += total_unassigned
     export_grades.sort(key=lambda r: r[1])
     df_leftgrades = pd.DataFrame(export_grades, columns=export_cols)
