@@ -28,8 +28,7 @@ elif op == "email_slips":
     yn = input("Do you want to recalculate slip days first? (y/n): ")
     if yn == "y":
         subprocess.call("python slip_days.py", shell=True)
-    print("=== END SLIP DAYS CALCULATION ==\n")
-    print("=== BEGIN EMAIL SLIP DAYS SCRIPT ==")
+    print("\n=== BEGIN EMAIL SLIP DAYS SCRIPT ===")
     subprocess.call("python email_slip_days.py", shell=True)
 elif op == "mark_reading_not_selected":
     subprocess.call("python scrapers/mark_not_question.py", shell=True)
@@ -40,6 +39,5 @@ elif op == "download_then_analyze":
     # Download a particular assignment then analyze it:
     assn_name, _ = load.promptSelectAssignment()
     subprocess.call("python scrapers/watch_grading_sheets.py {} --once".format(assn_name), shell=True)
-    print("=== END DOWNLOAD GRADE EVAL SHEETS ==\n")
-    print("=== BEGIN GRADE ANALYZE SCRIPT ==")
+    print("\n=== BEGIN GRADE ANALYZE SCRIPT ===")
     subprocess.call("python grades.py {}".format(assn_name), shell=True)

@@ -17,5 +17,6 @@
     },
     "rosterCSV": "data/roster/roster-fa21.csv",
     "extraSlipsCSV": "data/extra_slip_days.csv",
-    "slipDaysCSVExportPath": "data/slip_days.csv"
+    "slipDaysCSVExportPath": "data/slip_days.csv",
+    "pyppeteerDownloadDir": "/Users/ianarawjo/Downloads/"
 }

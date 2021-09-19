@@ -1,7 +1,6 @@
 # Add location of INFO 4240 grading library to module search path
 import sys
 BASE_PATH = "./"
-DOWNLOAD_DIR = '/Users/ianarawjo/Downloads/' # where Chromium will d/l its files
 sys.path.append(BASE_PATH)
 
 import asyncio
@@ -15,6 +14,7 @@ from pyppeteer import launch
 import load
 CONFIG_PATH = os.path.join(BASE_PATH, "config.json")
 config = load.config(CONFIG_PATH)
+DOWNLOAD_DIR = config["pyppeteerDownloadDir"] # where Chromium will d/l its files
 assn_name, assn_info = None, None
 
 # Special commands:
