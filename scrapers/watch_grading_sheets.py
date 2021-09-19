@@ -11,10 +11,27 @@ import shutil
 import zipfile
 from pyppeteer import launch
 
-# Ask for which assignment to scrape:
+# Load config info for assignments
 import load
 CONFIG_PATH = os.path.join(BASE_PATH, "config.json")
-assn_name, assn_info = load.promptSelectAssignment(load.config(CONFIG_PATH))
+config = load.config(CONFIG_PATH)
+assn_name, assn_info = None, None
+
+# Special commands:
+# You can add <assn_name> to . After assn_name, you can add "--once" to do only once.
+ONLY_ONCE = False
+def parse_arg(arg):
+    global assn_name, assn_info, ONLY_ONCE
+    if arg[:2] == "--":
+        if arg[2:] == "once": ONLY_ONCE = True
+    elif arg in config["assignments"]:
+        assn_name, assn_info = arg, config["assignments"][arg]
+for arg in sys.argv[1:]:
+    parse_arg(arg)
+
+# Ask for which assignment to scrape:
+if assn_name is None:
+    assn_name, assn_info = load.promptSelectAssignment(config)
 
 """ Watcher to download gradesheets for an assignment automatically to specified folder.
     Must set WATCH_DIR and DOWNLOAD_DIR.
@@ -90,6 +107,10 @@ async def main():
             elif str(path)[-4:] == ".zip":
                 with zipfile.ZipFile(path, 'r') as zip_ref:
                     zip_ref.extractall(WATCH_DIR)
+        await asyncio.sleep(1)
+
+        if ONLY_ONCE:
+            break
 
         print("Re-downloading files in {} seconds...".format(SLEEP_INTERVAL))
         await page.goto(REVIEW_PAGE)

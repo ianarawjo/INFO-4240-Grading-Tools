@@ -23,12 +23,6 @@ SHOW_TA_GRADE_DIST = True
 SHOW_TA_GRADE_DIST_ONLY_TA = None # None # Default: None. Change to EXACT full name (string) to mask in only that TA
 # ===========================
 
-# == COMMAND LINE ==
-if len(sys.argv) == 3:
-    csv_dir = sys.argv[1]
-    rubric_path = sys.argv[2]
-# ===========================
-
 # Loads rubric JSON file
 def load_rubric(rubric_path):
     with open(rubric_path) as f:
@@ -404,10 +398,21 @@ def ta_consistency_check(grades):
 
 # Command-line loading.
 if __name__ == "__main__":
+    # Load central config file
     import load
+    config = load.config()
+
+    # Check for special command-line argument of which assignment to analyze:
+    assn_name, assn_info = None, None
+    if len(sys.argv) > 1:
+        if sys.argv[1] in config["assignments"]:
+            assn_name, assn_info = sys.argv[1], config["assignments"][sys.argv[1]]
 
     # Ask for which assignment to load:
-    assn_name, assn_info = load.promptSelectAssignment()
+    if assn_name is None:
+        assn_name, assn_info = load.promptSelectAssignment(config)
+
+    # Find paths to rubric and csv files
     rubric_path = assn_info["rubric"]
     csv_dir = assn_info["data"]
 

@@ -1,6 +1,7 @@
 # Nice command-line interface for accessing common scripts
 import subprocess
-OPS = ["analyze_grades", "download_grades", "calc_slips", "email_slips", "mark_reading_not_selected", "open_config"]
+import load
+OPS = ["analyze_grades", "download_grades", "calc_slips", "email_slips", "mark_reading_not_selected", "open_config", "download_then_analyze"]
 
 # Safely ask for an operation from a constrained list 'ops'.
 # If the user doesn't answer correctly, ask again.
@@ -35,3 +36,10 @@ elif op == "mark_reading_not_selected":
 elif op == "open_config":
     # Only works on MacOS rn
     subprocess.call("open config.json", shell=True)
+elif op == "download_then_analyze":
+    # Download a particular assignment then analyze it:
+    assn_name, _ = load.promptSelectAssignment()
+    subprocess.call("python scrapers/watch_grading_sheets.py {} --once".format(assn_name), shell=True)
+    print("=== END DOWNLOAD GRADE EVAL SHEETS ==\n")
+    print("=== BEGIN GRADE ANALYZE SCRIPT ==")
+    subprocess.call("python grades.py {}".format(assn_name), shell=True)
