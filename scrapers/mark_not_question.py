@@ -14,6 +14,7 @@ assn_name, assn_info = load.promptSelectAssignment(load.config(CONFIG_PATH))
 assignmentpage = os.path.join(assn_info["url"], "grade")
 
 empypage_placeholder = 'https://www.gradescope.com/assets/missing_placeholder-4d611cea193304f8a8455a58fd8082eed1ca4a0ea2082adb982b51a41eaa0c87.png'
+empypage_placeholder2 = 'https://www.gradescope.com/assets/missing_pdf-32be2863a022545146844ce20cd75e9c9698e872d227080a1561ea1d03d4f2ec.png'
 
 async def setup(assignmentpage):
     browser = await launch({"autoClose":False,'headless': False, 'userDataDir':'./pyppeteer_data'})
@@ -41,10 +42,11 @@ async def get_all_grading_links(elements):
 async def has_placeholder_image(page):
     image = await page.querySelector('img')
     image_src = await image.getProperty('src')
-    return image_src.toString().find('missing_placeholder') != -1
+    image_url = image_src.toString()
+    return image_url.find('missing_placeholder') != -1 or image_url.find('missing_pdf') != -1
 
 async def advance_page(page):
-    btn = await page.querySelector('.fa-forward')
+    btn = await page.querySelector('[title="Shortcut: Right arrow"]') # 'Right arrow' for the "Next" button, 'Z' for "Next Ungraded" (faster)
     await btn.click()
 
 async def get_text(page, element):

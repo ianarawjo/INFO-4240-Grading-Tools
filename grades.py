@@ -575,6 +575,9 @@ if __name__ == "__main__":
         graders_scores = [(g, d) for g, d in ta_stats(complete_grades).items()]
         graders_scores.sort(key=lambda x: stat.mean([d[0] for d in x[1]]))
         data = [np.array(sorted([d[0] for d in data])) for (_, data) in graders_scores] #, dtype=object)
+        if len(data) == 0:
+            print("Skipping dist visual: No grades to display.")
+            exit(0)
         total_mean = np.median(np.hstack(data))
 
         fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(16, 6), sharey=True)

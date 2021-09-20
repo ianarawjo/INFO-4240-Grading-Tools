@@ -53,7 +53,7 @@ def gen_messages(df_slips):
         else:
             late_assns_msg = "*Of the assignments you've submitted,* we've detected that you've submitted them all on-time. Awesome!"
 
-        extra_slips_msg = row['Extra Slips']
+        extra_slips_msg = "" if pd.isna(row['Extra Slips']) else row['Extra Slips']
 
         reply_option = "Do not reply."
         if something_missing or slips < 0:
